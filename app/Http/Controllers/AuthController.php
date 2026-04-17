@@ -20,34 +20,30 @@ class AuthController extends Controller
     // =========================
     public function login(Request $request)
     {
-        $credentials = $request->validate([
-            'email'    => 'required|string',
+        $request->validate([
+            'username' => 'required|string',
             'password' => 'required'
         ]);
 
-        if (Auth::attempt($credentials)) {
+        if (Auth::attempt(['username' => $request->username, 'password' => $request->password])) {
             $request->session()->regenerate();
 
             $user = Auth::user();
 
-            // =========================
-            // Redirect berdasarkan role
-            // =========================
-            if ($user->role === 'admin') {
-                return redirect()->intended('/permintaan'); 
+            if ($user->role === 'admin'  || $user->role === 'rekam_medis') {
+                return redirect()->intended('/permintaan');
             }
 
             if ($user->role === 'user') {
-                return redirect()->intended('/layanan'); 
+                return redirect()->intended('/layanan');
             }
 
-            // fallback jika role tidak dikenali
             return redirect()->intended('/');
         }
 
         return back()->withErrors([
-            'email' => 'Email atau password salah',
-        ])->onlyInput('email');
+            'username' => 'Username atau password salah',
+        ])->onlyInput('username');
     }
 
     // =========================

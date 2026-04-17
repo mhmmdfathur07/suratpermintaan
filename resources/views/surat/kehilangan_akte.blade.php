@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Surat Keterangan Rawat Jalan</title>
+<title>Surat Keterangan Kehilangan Akte</title>
 <style>
     @page { size: A4; margin: 2.5cm; }
     body {
@@ -28,15 +28,15 @@
 <body>
 
     <!-- JUDUL -->
-    <div class="center bold underline">SURAT KETERANGAN RAWAT JALAN</div>
-    <div class="center italic">Outpatient Certificate</div>
+    <div class="center bold underline">SURAT KETERANGAN KEHILANGAN AKTE</div>
+    <div class="center italic">Certificate of Lost Birth Certificate</div>
 
     <div class="center mt-20">
         No. {{ $data->no_permintaan }}/RM/RS.AZRA/{{ \Carbon\Carbon::parse($data->tanggal)->format('m') }}/{{ \Carbon\Carbon::parse($data->tanggal)->format('Y') }}
     </div>
 
     <div class="mt-20">
-        <span class="underline">Yang bertanda tangan di bawah ini, dokter <span class="bold">Rumah Sakit Azra Bogor</span>, menerangkan bahwa:</span><br>
+        <span class="underline">Yang bertandatangan dibawah ini, dokter <span class="bold">Rumah Sakit Azra Bogor</span>, menerangkan bahwa:</span><br>
         <span class="italic">The undersigned, the doctor of Azra Hospital Bogor, explained that:</span>
     </div>
 
@@ -45,7 +45,7 @@
         <tr>
             <td class="field-label">Nama</td>
             <td class="field-sep">:</td>
-            <td>{{ $data->nama ?? '.........................' }}</td>
+            <td>{{ $data->nama ?? '.............................' }}</td>
         </tr>
         <tr>
             <td class="italic">Name</td>
@@ -65,7 +65,7 @@
         <tr>
             <td>No. Rekam Medis</td>
             <td>:</td>
-            <td>{{ $data->kode_rm ?? '.........................' }}</td>
+            <td>{{ $data->kode_rm ?? '.........' }}</td>
         </tr>
         <tr>
             <td class="italic">Medical Record Number</td>
@@ -75,7 +75,7 @@
         <tr>
             <td>Alamat</td>
             <td>:</td>
-            <td>{{ $data->alamat ?? '.........................' }}</td>
+            <td>{{ $data->alamat ?? '.....................................' }}</td>
         </tr>
         <tr>
             <td class="italic">Address</td>
@@ -86,16 +86,22 @@
 
     <!-- ISI SURAT -->
     <div class="mt-20">
-        <span class="underline">Adalah benar pasien Rumah Sakit Azra Bogor, yang berobat ke Poliklinik Spesialis {{ $data->poliklinik ?? '-' }}
-        pada tanggal {{ $data->tgl_periksa ? \Carbon\Carbon::parse($data->tgl_periksa)->translatedFormat('d F Y') : '.........................' }},
-        dengan diagnosis {{ $data->diagnosis ?? '-' }}.</span><br>
-        <span class="italic">It is true that the patient of Azra Hospital Bogor, who visited the {{ $data->poliklinik ?? '-' }} Specialist Polyclinic
-        on {{ $data->tgl_periksa ? \Carbon\Carbon::parse($data->tgl_periksa)->format('F jS, Y') : '.........................' }},
-        with diagnosis {{ $data->diagnosis ?? '-' }}.</span>
+        <span class="underline">Berdasarkan Surat Kelahiran yang pernah dikeluarkan dengan
+        No.{{ $data->kode_rm ?? '.........' }}/<span class="bold">RM/SRTLHR</span>/{{ $data->no_surat_kelahiran ?? '../....' }}
+        adalah benar pasien <span class="bold">Rumah Sakit Azra Bogor</span>,
+        yang telah melahirkan bayi ({{ $data->jenis_kelamin_bayi ?? 'Perempuan/Laki-laki' }})
+        pada tanggal {{ $data->tgl_lahir_bayi ? \Carbon\Carbon::parse($data->tgl_lahir_bayi)->translatedFormat('d F Y') : '..........' }}
+        pukul {{ $data->jam_lahir_bayi ?? '......' }} WIB.</span><br>
+        <span class="italic">Based on the Birth Certificate previously issued with
+        No.{{ $data->kode_rm ?? '.........' }}/RM/SRTLHR/{{ $data->no_surat_kelahiran ?? '../....' }}
+        it is true that the patient of Azra Hospital Bogor,
+        who gave birth to a baby ({{ $data->jenis_kelamin_bayi ?? 'Female/Male' }})
+        on {{ $data->tgl_lahir_bayi ? \Carbon\Carbon::parse($data->tgl_lahir_bayi)->format('F jS, Y') : '..........' }}
+        at {{ $data->jam_lahir_bayi ?? '......' }} WIB.</span>
     </div>
 
     <div class="mt-20">
-        <span class="underline">Demikianlah surat keterangan ini dibuat untuk dipergunakan sebagaimana mestinya.</span><br>
+        <span class="underline">Demikianlah surat keterangan ini dibuat untuk dapat dipergunakan sebagaimana mestinya.</span><br>
         <span class="italic">Thus this statement was made so that those with an interest in understanding.</span>
     </div>
 
@@ -105,17 +111,11 @@
             <td width="50%">
                 Bogor,
                 {{ \Carbon\Carbon::parse($data->tanggal)->format('F jS, Y') }}<br><br>
-                Dokter yang memeriksa,<br>
-                <span class="italic">Examining Doctor,</span><br><br><br><br>
-                <u>{{ $data->nama_dokter ?? 'dr. .......................' }}</u>
+                <span class="bold">Ka.Inst. Ruang Persalinan,</span><br>
+                <span class="italic">Head of Maternity Room,</span><br><br><br><br>
+                ({{ $data->nama_dokter ?? '.............................' }})
             </td>
-            <td width="50%" class="center">
-                Menyetujui data kesehatan saya<br>
-                diberikan kepada pihak ketiga<br>
-                <span class="italic">Approving my health data<br>
-                given to third parties</span><br><br><br><br>
-                <u>{{ $data->nama_persetujuan ?? '...................' }}</u>
-            </td>
+            <td width="50%"></td>
         </tr>
     </table>
 
