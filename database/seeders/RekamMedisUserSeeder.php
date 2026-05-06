@@ -16,7 +16,8 @@ class RekamMedisUserSeeder extends Seeder
         // Buat user dengan role rekam_medis
         User::create([
             'name' => 'Rekam Medis',
-            'email' => 'rekam_medis',
+            'username' => 'rekam_medis',
+            'email' => 'rekam_medis@example.com',
             'password' => Hash::make('rekam_medis123'),
             'role' => 'rekam_medis',
         ]);

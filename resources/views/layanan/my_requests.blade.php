@@ -7,6 +7,7 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
 <style>
     *, *::before, *::after { box-sizing: border-box; }
     body {
@@ -110,6 +111,37 @@
     }
     .btn-reset:hover { border-color: #005654; color: #005654; background: #f0f9f8; }
 
+    /* Select2 custom styling */
+    .select2-container .select2-selection--single {
+        height: 38px; border-radius: 10px; border: 1.5px solid #d0e8e7;
+        display: flex; align-items: center;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 36px; font-size: 13.5px; color: #333; padding-left: 12px; padding-right: 30px;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 36px; right: 8px;
+    }
+    .select2-container--default.select2-container--focus .select2-selection--single,
+    .select2-container--default.select2-container--open .select2-selection--single {
+        border-color: #005654; box-shadow: 0 0 0 3px rgba(0,86,84,.1); outline: none;
+    }
+    .select2-dropdown {
+        border-radius: 10px; border: 1.5px solid #d0e8e7;
+        box-shadow: 0 4px 16px rgba(0,0,0,.1); font-size: 13.5px;
+    }
+    .select2-results__options { max-height: 220px; overflow-y: auto; }
+    .select2-container--default .select2-search--dropdown .select2-search__field {
+        border-radius: 8px; border: 1.5px solid #d0e8e7; font-size: 13px; padding: 6px 10px;
+    }
+    .select2-container--default .select2-search--dropdown .select2-search__field:focus {
+        border-color: #005654; outline: none;
+    }
+    .select2-container--default .select2-results__option--highlighted[aria-selected] {
+        background-color: #2563EB;
+    }
+    .select2-container { width: 200px !important; }
+
     /* ── TABLE CARD ── */
     .table-card {
         background: #fff;
@@ -117,6 +149,15 @@
         box-shadow: 0 4px 20px rgba(0,0,0,.06);
         overflow: hidden;
     }
+    .table-scroll-wrap {
+        overflow-x: auto;
+        overflow-y: auto;
+        max-height: 520px;
+    }
+    .table-scroll-wrap::-webkit-scrollbar { height: 8px; width: 8px; }
+    .table-scroll-wrap::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+    .table-scroll-wrap::-webkit-scrollbar-thumb { background: #b0cece; border-radius: 4px; }
+    .table-scroll-wrap::-webkit-scrollbar-thumb:hover { background: #005654; }
     .table { margin-bottom: 0; }
     .table thead th {
         background: #005654; color: #fff;
@@ -164,8 +205,6 @@
     .status-proses .dot   { background: #3b82f6; }
     .status-selesai  { background: #e6f4ea; color: #1a7a3c; }
     .status-selesai .dot  { background: #22c55e; }
-    .status-ditolak  { background: #fde8e8; color: #c0392b; }
-    .status-ditolak .dot  { background: #ef4444; }
 
     /* ── ACTION BUTTONS ── */
     .btn-action {
@@ -221,15 +260,8 @@
             </div>
         </div>
         <div class="header-actions">
-            <div class="dropdown">
-                <button class="btn-nav dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                    <i class="bi bi-grid-3x3-gap-fill"></i> Menu
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end" style="border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.1); border:1px solid #f0f0f0; min-width:180px;">
-                    <li><a class="dropdown-item" href="{{ route('layanan.index') }}"><i class="bi bi-plus-circle me-2 text-muted"></i>Ajukan Layanan</a></li>
-                    <li><a class="dropdown-item" href="{{ route('user.permintaan') }}"><i class="bi bi-list-check me-2 text-muted"></i>History Permintaan</a></li>
-                </ul>
-            </div>
+            <a href="{{ route('layanan.index') }}" class="btn-nav"><i class="bi bi-plus-circle me-1"></i> Ajukan Layanan</a>
+            <a href="{{ route('user.permintaan') }}" class="btn-nav"><i class="bi bi-list-check me-1"></i> History Permintaan</a>
             <div class="divider-v"></div>
             <div class="user-info">
                 <i class="bi bi-person-circle"></i>
@@ -256,11 +288,10 @@
             <div class="search-wrap">
                 <i class="bi bi-search"></i>
                 <input type="text" name="search" value="{{ request('search') }}"
-                       placeholder="Cari no, nama, layanan...">
+                       placeholder="Cari no, nama...">
             </div>
 
-            <select name="layanan" class="form-select" style="width:200px; height:38px; border-radius:10px; border:1.5px solid #d0e8e7; font-size:13.5px; color: {{ request('layanan') ? '#212529' : '#aaa' }};"
-                    onchange="this.style.color='#212529'">
+            <select name="layanan" id="filterLayanan" class="form-select" style="width:200px; height:38px; border-radius:10px; border:1.5px solid #d0e8e7; font-size:13.5px;">
                 <option value="">-- Semua Layanan --</option>
                 @foreach($layanans as $layanan)
                     <option value="{{ $layanan->nama_layanan }}"
@@ -305,10 +336,10 @@
 
     <!-- Table -->
     <div class="table-card">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle">
+        <div class="table-scroll-wrap">
+            <table class="table table-hover align-middle" style="min-width:900px; margin-bottom:0;">
                 <thead>
-                    <tr>
+                    <tr style="position:sticky; top:0; z-index:2;">
                         <th class="text-center" style="width:48px;">No</th>
                         <th>No Permintaan</th>
                         <th>Nama Pasien</th>
@@ -339,7 +370,7 @@
                             @php $s = $row->status ?? 'pending'; @endphp
                             <span class="badge-status status-{{ $s }}">
                                 <span class="dot"></span>
-                                {{ ['pending'=>'Pending','proses'=>'Diproses','selesai'=>'Selesai','ditolak'=>'Ditolak'][$s] ?? $s }}
+                                {{ ['pending'=>'Pending','proses'=>'Diproses','selesai'=>'Selesai'][$s] ?? $s }}
                             </span>
                         </td>
                         <td class="cell-muted">
@@ -395,5 +426,17 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#filterLayanan').select2({
+            placeholder: '— Semua Layanan —',
+            allowClear: true,
+            width: 'resolve',
+            dropdownAutoWidth: true,
+        });
+    });
+</script>
 </body>
 </html>

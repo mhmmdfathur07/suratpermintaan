@@ -6,23 +6,18 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::table('layanans', function (Blueprint $table) {
-            $table->string('template_path')->nullable();
+            $table->text('kalimat_pembuka')->nullable()->after('judul_surat_en');
+            $table->text('kalimat_pembuka_en')->nullable()->after('kalimat_pembuka');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::table('layanans', function (Blueprint $table) {
-            $table->dropColumn('template_path');
+            $table->dropColumn(['kalimat_pembuka', 'kalimat_pembuka_en']);
         });
     }
 };

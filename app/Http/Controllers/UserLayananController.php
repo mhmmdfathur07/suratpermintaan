@@ -13,8 +13,20 @@ class UserLayananController extends Controller
     // =========================
     public function index()
     {
-        $layanans = \App\Models\Layanan::where('is_active', true)->get();
-        return view('layanan.create', compact('layanans'));
+        $layanans = \App\Models\Layanan::where('is_active', true)
+            ->with('biodataFields')
+            ->get();
+
+        // Map layanan_id => array of field configs untuk JS
+        $biodataMap = $layanans->mapWithKeys(function ($l) {
+            return [$l->nama_layanan => $l->biodataFields->map(fn($f) => [
+                'label'     => $f->label,
+                'field_key' => $f->field_key,
+                'suffix'    => $f->suffix,
+            ])->values()];
+        });
+
+        return view('layanan.create', compact('layanans', 'biodataMap'));
     }
 
     // =========================
@@ -22,46 +34,59 @@ class UserLayananController extends Controller
     // =========================
     public function store(Request $request)
     {
-        // VALIDASI SESUAI FORM BARU
         $request->validate([
-            'layanan'     => 'required',
-            'layanan_lain'=> 'required_if:layanan,lain-lain|nullable|string',
-            'nama'        => 'required|string',
-            'umur'        => 'required|numeric',
-            'kode_rm'     => 'required|string',
-            'alamat'      => 'required|string',
-            'no_telepon'  => 'nullable|string|max:20',
+            'layanan'      => 'required',
+            'layanan_lain' => 'required_if:layanan,lain-lain|nullable|string',
         ]);
 
-        // Tentukan nama layanan final
         $namaLayanan = $request->layanan;
         if ($namaLayanan === 'lain-lain' && !empty($request->layanan_lain)) {
             $namaLayanan = trim($request->layanan_lain);
         }
 
-        // Simpan ke tabel layanans jika belum ada (berlaku untuk lain-lain maupun layanan baru apapun)
+        // Simpan ke tabel layanans jika belum ada
         Layanan::firstOrCreate(
             ['nama_layanan' => $namaLayanan],
             ['deskripsi' => null, 'is_active' => true]
         );
 
-        // SIMPAN DATA
-        Permintaan::create([
+        // Kolom yang boleh diisi user dari biodata fields
+        $allowedFields = [
+            'nama', 'nama_suami', 'umur', 'kode_rm', 'alamat', 'no_telepon', 'bangsa', 'nm_penerima',
+            'tempat_lahir', 'tgl_lahir', 'jenis_kelamin',
+            'no_hp', 'nm_petugas_rm', 'nama_peminta', 'email_peminta',
+            'no_whatsapp', 'up', 'jumlah_form_asuransi', 'tgl_rencana_kirim',
+            'diagnosis', 'poliklinik',
+            'tgl_masuk', 'tgl_keluar', 'tgl_periksa', 'tgl_berobat',
+            'usia_kehamilan_minggu', 'usia_kehamilan_hari',
+            'no_surat_kelahiran', 'jenis_kelamin_bayi', 'tgl_lahir_bayi', 'jam_lahir_bayi',
+        ];
+
+        $fillData = [
             'no_permintaan' => 'REQ-' . time(),
             'layanan'       => $namaLayanan,
-            'nama'          => $request->nama,
-            'umur'          => $request->umur,
-            'kode_rm'       => $request->kode_rm,
-            'alamat'        => $request->alamat,
-            'no_telepon'    => $request->no_telepon,
-            'tanggal'       => now(), // otomatis dari sistem
-            'isi_surat'     => '-', // default kosong, nanti diisi admin
+            'tanggal'       => now(),
+            'isi_surat'     => null,
+            'nm_petugas_rm' => null,
             'status'        => 'pending',
             'role'          => 'user',
-            'user_id'       => auth()->id()
-        ]);
+            'user_id'       => auth()->id(),
+        ];
 
-        return redirect()->back()->with('success','Permintaan berhasil dikirim');
+        foreach ($allowedFields as $field) {
+            if ($request->has($field)) {
+                $val = $request->input($field);
+                // Simpan nilai apa adanya, termasuk string kosong → null
+                $fillData[$field] = ($val !== '' && $val !== null) ? $val : null;
+            }
+        }
+
+        // nm_penerima khusus — ambil langsung dari request
+        $fillData['nm_penerima'] = $request->input('nm_penerima') ?: null;
+
+        Permintaan::create($fillData);
+
+        return redirect()->back()->with('success', 'Permintaan berhasil dikirim');
     }
 
     // =========================
@@ -131,6 +156,20 @@ class UserLayananController extends Controller
             abort(403, 'Permintaan belum selesai diproses');
         }
 
-        return view('permintaan.cetak', compact('data'));
+        // Jika ada file upload (PDF), redirect ke file tersebut
+        if ($data->file_surat) {
+            return redirect(\Storage::disk('public')->url($data->file_surat));
+        }
+
+        // Gunakan template dinamis dari konfigurasi layanan
+        $layanan = Layanan::with(['biodataFields', 'isiTemplate'])
+            ->where('nama_layanan', $data->layanan)
+            ->first();
+
+        if (!$layanan || empty($layanan->template_path)) {
+            abort(404, 'Template surat tidak ditemukan');
+        }
+
+        return view($layanan->template_path, compact('data', 'layanan'));
     }
 }

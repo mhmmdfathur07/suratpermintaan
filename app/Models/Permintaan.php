@@ -10,14 +10,20 @@ class Permintaan extends Model
     'no_permintaan',
     'layanan',
     'nama',
+    'nama_suami',
     'umur',
     'alamat',
     'no_telepon',
+    'no_hp',
+    'tempat_lahir',
+    'tgl_lahir',
+    'jenis_kelamin',
     'kode_rm',
     'isi_surat',
     'tanggal',
     'nm_penerima',
     'nm_petugas_rm',
+    'bangsa',
 
     'diagnosis',
     'poliklinik',
@@ -48,6 +54,12 @@ class Permintaan extends Model
     'keterangan',
     'tgl_dibuat',
     'file_surat',
+    'nama_peminta',
+    'email_peminta',
+    'no_whatsapp',
+    'up',
+    'jumlah_form_asuransi',
+    'tgl_rencana_kirim',
 ];
 
     /**

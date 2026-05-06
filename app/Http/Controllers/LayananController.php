@@ -4,105 +4,178 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Layanan;
+use App\Models\LayananBiodataField;
+use App\Models\LayananIsiTemplate;
+use App\Models\Kategori;
 
 class LayananController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index(Request $request)
-        {
-            $query = Layanan::query();
-            
-            if ($request->has('search') && $request->search != '') {
-                $search = $request->search;
-                $query->where(function($q) use ($search) {
-                    $q->where('nama_layanan', 'like', '%' . $search . '%')
-                      ->orWhere('deskripsi', 'like', '%' . $search . '%');
-                });
-            }
-            
-            $layanans = $query->orderBy('created_at', 'desc')->get();
-            return view('master.layanan.index', compact('layanans'));
-        }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-        {
-            return view('master.layanan.create');
-        }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-        {
-            $request->validate([
-                'nama_layanan' => 'required|string|max:255',
-                'deskripsi' => 'nullable|string',
-                'is_active' => 'boolean'
-            ]);
-
-            Layanan::create([
-                'nama_layanan' => $request->nama_layanan,
-                'deskripsi' => $request->deskripsi,
-                'is_active' => $request->has('is_active') ? 1 : 0
-            ]);
-
-            return redirect()->route('master.layanan.index')->with('success', 'Layanan berhasil ditambahkan');
-        }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
     {
-        //
+        $query = Layanan::query();
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('nama_layanan', 'like', "%$search%")
+                  ->orWhere('deskripsi', 'like', "%$search%");
+            });
+        }
+
+        $layanans = $query->with('kategori')->orderBy('created_at', 'desc')->get();
+        return view('master.layanan.index', compact('layanans'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
+    public function create()
+    {
+        $kategoris = Kategori::where('is_active', true)->orderBy('nama')->get();
+        return view('master.layanan.create', compact('kategoris'));
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'nama_layanan'       => 'required|string|max:255',
+            'kategori_id'        => 'nullable|exists:kategoris,id',
+            'judul_surat'        => 'nullable|string|max:255',
+            'judul_surat_en'     => 'nullable|string|max:255',
+            'deskripsi'          => 'nullable|string',
+            'kalimat_penutup'    => 'nullable|string',
+            'kalimat_penutup_en' => 'nullable|string',
+            'ttd_kiri_label'     => 'nullable|string|max:255',
+            'ttd_kiri_label_en'  => 'nullable|string|max:255',
+            'ttd_kanan_label'    => 'nullable|string|max:255',
+            'ttd_kanan_label_en' => 'nullable|string|max:255',
+        ]);
+
+        $layanan = Layanan::create([
+            'kategori_id'        => $request->kategori_id ?: null,
+            'nama_layanan'       => $request->nama_layanan,
+            'judul_surat'        => $request->judul_surat,
+            'judul_surat_en'     => $request->judul_surat_en,
+            'kalimat_pembuka'    => $request->kalimat_pembuka,
+            'kalimat_pembuka_en' => $request->kalimat_pembuka_en,
+            'deskripsi'          => $request->deskripsi,
+            'template_path'      => 'surat.template_universal',
+            'is_active'          => $request->has('is_active') ? 1 : 0,
+            'kalimat_penutup'    => $request->kalimat_penutup,
+            'kalimat_penutup_en' => $request->kalimat_penutup_en,
+            'ttd_kiri_label'     => $request->ttd_kiri_label,
+            'ttd_kiri_label_en'  => $request->ttd_kiri_label_en,
+            'ttd_kanan_label'    => $request->ttd_kanan_label,
+            'ttd_kanan_label_en' => $request->ttd_kanan_label_en,
+            'ttd_tanggal_posisi' => $request->ttd_tanggal_posisi,
+        ]);
+
+        // Simpan biodata fields
+        $this->saveBiodataFields($layanan->id, $request);
+
+        // Simpan isi template
+        $this->saveIsiTemplate($layanan->id, $request);
+
+        return redirect()->route('master.layanan.index')
+            ->with('success', 'Layanan berhasil ditambahkan');
+    }
+
     public function edit(string $id)
-        {
-            $layanan = Layanan::findOrFail($id);
-            if (request()->expectsJson()) {
-                return response()->json($layanan);
-            }
-            return view('master.layanan.edit', compact('layanan'));
+    {
+        $layanan   = Layanan::with(['biodataFields', 'isiTemplate'])->findOrFail($id);
+        $kategoris = Kategori::where('is_active', true)->orderBy('nama')->get();
+        if (request()->expectsJson()) {
+            return response()->json($layanan);
         }
+        return view('master.layanan.edit', compact('layanan', 'kategoris'));
+    }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, string $id)
-        {
-            $request->validate([
-                'nama_layanan' => 'required|string|max:255',
-                'deskripsi' => 'nullable|string',
-                'is_active' => 'boolean'
-            ]);
+    {
+        $request->validate([
+            'nama_layanan'       => 'required|string|max:255',
+            'kategori_id'        => 'nullable|exists:kategoris,id',
+            'judul_surat'        => 'nullable|string|max:255',
+            'judul_surat_en'     => 'nullable|string|max:255',
+            'deskripsi'          => 'nullable|string',
+            'kalimat_penutup'    => 'nullable|string',
+            'kalimat_penutup_en' => 'nullable|string',
+            'ttd_kiri_label'     => 'nullable|string|max:255',
+            'ttd_kiri_label_en'  => 'nullable|string|max:255',
+            'ttd_kanan_label'    => 'nullable|string|max:255',
+            'ttd_kanan_label_en' => 'nullable|string|max:255',
+        ]);
 
-            $layanan = Layanan::findOrFail($id);
-            $layanan->update([
-                'nama_layanan' => $request->nama_layanan,
-                'deskripsi' => $request->deskripsi,
-                'is_active' => $request->has('is_active') ? 1 : 0
-            ]);
+        $layanan = Layanan::findOrFail($id);
+        $layanan->update([
+            'kategori_id'        => $request->kategori_id ?: null,
+            'nama_layanan'       => $request->nama_layanan,
+            'judul_surat'        => $request->judul_surat,
+            'judul_surat_en'     => $request->judul_surat_en,
+            'kalimat_pembuka'    => $request->kalimat_pembuka,
+            'kalimat_pembuka_en' => $request->kalimat_pembuka_en,
+            'deskripsi'          => $request->deskripsi,
+            'template_path'      => 'surat.template_universal',
+            'is_active'          => $request->has('is_active') ? 1 : 0,
+            'kalimat_penutup'    => $request->kalimat_penutup,
+            'kalimat_penutup_en' => $request->kalimat_penutup_en,
+            'ttd_kiri_label'     => $request->ttd_kiri_label,
+            'ttd_kiri_label_en'  => $request->ttd_kiri_label_en,
+            'ttd_kanan_label'    => $request->ttd_kanan_label,
+            'ttd_kanan_label_en' => $request->ttd_kanan_label_en,
+            'ttd_tanggal_posisi' => $request->ttd_tanggal_posisi,
+        ]);
+        LayananBiodataField::where('layanan_id', $id)->delete();
+        $this->saveBiodataFields($id, $request);
 
-            return redirect()->route('master.layanan.index')->with('success', 'Layanan berhasil diupdate');
-        }
+        LayananIsiTemplate::where('layanan_id', $id)->delete();
+        $this->saveIsiTemplate($id, $request);
 
-    /**
-     * Remove the specified resource from storage.
-     */
+        return redirect()->route('master.layanan.index')
+            ->with('success', 'Layanan berhasil diupdate');
+    }
+
     public function destroy(string $id)
-        {
-            $layanan = Layanan::findOrFail($id);
-            $layanan->delete();
+    {
+        Layanan::findOrFail($id)->delete();
+        return redirect()->route('master.layanan.index')
+            ->with('success', 'Layanan berhasil dihapus');
+    }
 
-            return redirect()->route('master.layanan.index')->with('success', 'Layanan berhasil dihapus');
+    // ── PRIVATE HELPERS ──────────────────────────────────────────────
+
+    private function saveBiodataFields(int $layananId, Request $request): void
+    {
+        $labels      = $request->input('biodata_label', []);
+        $labelsEn    = $request->input('biodata_label_en', []);
+        $keys        = $request->input('biodata_field_key', []);
+        $suffixes    = $request->input('biodata_suffix', []);
+        $suffixsEn   = $request->input('biodata_suffix_en', []);
+        $adminFields = $request->input('biodata_is_admin', []);
+
+        foreach ($keys as $i => $key) {
+            if (empty($key)) continue;
+            LayananBiodataField::create([
+                'layanan_id'     => $layananId,
+                'label'          => $labels[$i] ?? '',
+                'label_en'       => $labelsEn[$i] ?? null,
+                'field_key'      => $key,
+                'suffix'         => $suffixes[$i] ?? null,
+                'suffix_en'      => $suffixsEn[$i] ?? null,
+                'urutan'         => $i,
+                'is_admin_field' => isset($adminFields[$i]) ? 1 : 0,
+            ]);
         }
+    }
+
+    private function saveIsiTemplate(int $layananId, Request $request): void
+    {
+        $isiId = $request->input('isi_id');
+        $isiEn = $request->input('isi_en');
+
+        if ($isiId) {
+            LayananIsiTemplate::create([
+                'layanan_id' => $layananId,
+                'isi_id'     => $isiId,
+                'isi_en'     => $isiEn,
+            ]);
+        }
+    }
 }

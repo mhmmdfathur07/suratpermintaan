@@ -150,6 +150,9 @@
         border-radius: 10px; border: 1.5px solid #d0e8e7;
         box-shadow: 0 4px 16px rgba(0,0,0,.1); font-size: 13.5px;
     }
+    .select2-results__options {
+        max-height: 220px; overflow-y: auto;
+    }
     .select2-container--default .select2-search--dropdown .select2-search__field {
         border-radius: 8px; border: 1.5px solid #d0e8e7; font-size: 13px; padding: 6px 10px;
     }
@@ -230,8 +233,7 @@
     .status-diproses .dot { background: #3b82f6; }
     .status-selesai  { background: #e6f4ea; color: #1a7a3c; }
     .status-selesai .dot  { background: #22c55e; }
-    .status-ditolak  { background: #fde8e8; color: #c0392b; }
-    .status-ditolak .dot  { background: #ef4444; }
+
 
     /* ── STATUS DROPDOWN ── */
     .status-dropdown {
@@ -403,9 +405,9 @@
                     <tbody>
                     @forelse($data as $row)
                         @php
-                            $statusMap = ['pending'=>'Pending','diproses'=>'Diproses','selesai'=>'Selesai','ditolak'=>'Ditolak'];
+                            $statusMap = ['pending'=>'Pending','diproses'=>'Diproses','selesai'=>'Selesai'];
                             $s = $row->status ?? 'pending';
-                            $dotColors = ['pending'=>'#f0ad00','diproses'=>'#3b82f6','selesai'=>'#22c55e','ditolak'=>'#ef4444'];
+                            $dotColors = ['pending'=>'#f0ad00','diproses'=>'#3b82f6','selesai'=>'#22c55e'];
                         @endphp
                         <tr>
                             <td class="cell-no-req">{{ $row->no_permintaan }}</td>
@@ -579,8 +581,8 @@
 
 
 
-    const statusLabel = { pending: 'Pending', diproses: 'Diproses', selesai: 'Selesai', ditolak: 'Ditolak' };
-    const dotColors   = { pending: '#f0ad00', diproses: '#3b82f6', selesai: '#22c55e', ditolak: '#ef4444' };
+    const statusLabel = { pending: 'Pending', diproses: 'Diproses', selesai: 'Selesai' };
+    const dotColors   = { pending: '#f0ad00', diproses: '#3b82f6', selesai: '#22c55e' };
 
     function toggleDropdown(id, e) {
         e.stopPropagation();
@@ -619,6 +621,18 @@
     }
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#filterLayanan').select2({
+            placeholder: '— Semua Layanan —',
+            allowClear: true,
+            width: 'resolve',
+            dropdownAutoWidth: true,
+        });
+    });
+</script>
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>

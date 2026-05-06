@@ -101,7 +101,6 @@
     .status-pending  { background: #fff3cd; color: #856404; }
     .status-proses   { background: #cfe2ff; color: #084298; }
     .status-selesai  { background: #d1e7dd; color: #0a3622; }
-    .status-ditolak  { background: #f8d7da; color: #842029; }
 
     .divider-h { border: none; border-top: 1px solid #f0f0f0; margin: 24px 0; }
 
@@ -237,7 +236,7 @@
                     <div class="value">
                         @php $s = $data->status ?? 'pending'; @endphp
                         <span class="badge-status status-{{ $s }}">
-                            {{ ['pending'=>'Pending','proses'=>'Diproses','selesai'=>'Selesai','ditolak'=>'Ditolak'][$s] ?? $s }}
+                            {{ ['pending'=>'Pending','proses'=>'Diproses','selesai'=>'Selesai'][$s] ?? $s }}
                         </span>
                     </div>
                 </div>

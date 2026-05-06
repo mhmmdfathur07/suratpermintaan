@@ -73,18 +73,15 @@ class PermintaanController extends Controller
     {
         $data = Permintaan::findOrFail($id);
 
-        $template = [
-            'Surat Keterangan Rawat Inap'     => 'surat.rawat_inap',
-            'Surat Keterangan Rawat Jalan'    => 'surat.rawat_jalan',
-            'Surat Keterangan Layak Terbang'  => 'surat.layak_terbang',
-            'Surat Kehilangan Akte Lahir'      => 'surat.kehilangan_akte',
-        ];
+        $layanan = \App\Models\Layanan::with(['biodataFields', 'isiTemplate'])
+            ->where('nama_layanan', $data->layanan)
+            ->first();
 
-        if (!isset($template[$data->layanan])) {
+        if (!$layanan || empty($layanan->template_path)) {
             abort(404, 'Template tidak ditemukan');
         }
 
-        return view($template[$data->layanan], compact('data'));
+        return view($layanan->template_path, compact('data', 'layanan'));
     }
 
     // =========================
@@ -94,7 +91,43 @@ class PermintaanController extends Controller
     {
         $data    = Permintaan::findOrFail($id);
         $doctors = \App\Models\Doctor::where('is_active', true)->orderBy('nama_dokter')->get();
-        return view('permintaan.edit', compact('data', 'doctors'));
+
+        // Ambil placeholder dari isi surat layanan ini
+        $isiFields = collect();
+        $layananConfig = \App\Models\Layanan::with('isiTemplate')
+            ->where('nama_layanan', $data->layanan)->first();
+
+        if ($layananConfig?->isiTemplate) {
+            $teks = $layananConfig->isiTemplate->isi_id . ' ' . ($layananConfig->isiTemplate->isi_en ?? '');
+            // Tambahkan juga kalimat pembuka dan penutup
+            $teks .= ' ' . ($layananConfig->kalimat_pembuka ?? '') . ' ' . ($layananConfig->kalimat_pembuka_en ?? '');
+            preg_match_all('/\{\{(\w+)(?:\|[^}]+)?\}\}/', $teks, $matches);
+            $keys = array_unique($matches[1]);
+
+            // Kolom yang diisi user saat pengajuan atau sudah ada di card kanan — tidak perlu tampil di isi surat
+            $userFields = ['nama','umur','kode_rm','alamat','no_telepon','bangsa','nama_dokter','nama_persetujuan'];
+
+            foreach ($keys as $key) {
+                if (!in_array($key, $userFields)) {
+                    $isiFields->push($key);
+                }
+            }
+        }
+
+        // Semua placeholder di seluruh template layanan (untuk cek relevansi field di card kanan)
+        $allLayananFields = collect();
+        if ($layananConfig) {
+            $allTeks = implode(' ', array_filter([
+                $layananConfig->isiTemplate?->isi_id,
+                $layananConfig->isiTemplate?->isi_en,
+                $layananConfig->kalimat_pembuka,
+                $layananConfig->kalimat_pembuka_en,
+            ]));
+            preg_match_all('/\{\{(\w+)(?:\|[^}]+)?\}\}/', $allTeks, $m);
+            $allLayananFields = collect(array_unique($m[1]));
+        }
+
+        return view('permintaan.edit', compact('data', 'doctors', 'isiFields', 'allLayananFields'));
     }
 
     // =========================
@@ -104,64 +137,42 @@ class PermintaanController extends Controller
     {
         $data = Permintaan::findOrFail($id);
 
-        $request->validate([
-            'nm_penerima'   => 'required|string',
-            'nm_petugas_rm' => 'required|string',
-            'diagnosis'     => 'nullable|string',
-            'nama_dokter'   => 'nullable|string',
-            'nama_persetujuan' => 'nullable|string',
-            'tgl_masuk'     => 'nullable|date',
-            'tgl_keluar'    => 'nullable|date',
-            'tgl_periksa'   => 'nullable|date',
-            'poliklinik'    => 'nullable|string',
-            'tgl_berobat'   => 'nullable|date',
-            'status_kehamilan' => 'nullable|string',
-            'usia_kehamilan_hpht' => 'nullable|string',
-            'usia_kehamilan_minggu' => 'nullable|integer',
-            'usia_kehamilan_hari' => 'nullable|integer',
-            'kondisi_ibu'   => 'nullable|string',
+        // Ambil field admin dari konfigurasi layanan
+        $layananConfig = \App\Models\Layanan::with(['biodataFields' => function($q) {
+            $q->where('is_admin_field', true);
+        }])->where('nama_layanan', $data->layanan)->first();
 
-            // KEHILANGAN AKTE
-            'no_surat_kelahiran'  => 'nullable|string',
-            'jenis_kelamin_bayi'  => 'nullable|string',
-            'tgl_lahir_bayi'      => 'nullable|date',
-            'jam_lahir_bayi'      => 'nullable|string',
-        ]);
+        $adminFieldKeys = $layananConfig?->biodataFields->pluck('field_key')->toArray() ?? [];
 
-        $data->update([
-            'nm_penerima'     => $request->nm_penerima,
-            'nm_petugas_rm'   => auth()->user()->name,
+        // Field tetap yang selalu ada
+        $updateData = [
+            'nm_penerima'      => $request->nm_penerima,
+            'nm_petugas_rm'    => auth()->user()->name,
+            'nama_dokter'      => $request->nama_dokter,
+            'nama_persetujuan' => $request->nama_persetujuan,
+        ];
 
-            // RAWAT INAP
-            'tgl_masuk'       => $request->tgl_masuk,
-            'tgl_keluar'      => $request->tgl_keluar,
+        // Field dinamis dari isi surat — simpan semua yang dikirim
+        $allowedDynamic = [
+            'diagnosis','nama_persetujuan',
+            'tgl_masuk','tgl_keluar','tgl_periksa','tgl_berobat',
+            'poliklinik','status_kehamilan','usia_kehamilan_hpht',
+            'usia_kehamilan_minggu','usia_kehamilan_hari','kondisi_ibu',
+            'no_surat_kelahiran','jenis_kelamin_bayi','tgl_lahir_bayi','jam_lahir_bayi',
+        ];
 
-            // RAWAT JALAN
-            'tgl_periksa'     => $request->tgl_periksa,
-            'poliklinik'      => $request->poliklinik,
+        foreach (array_unique(array_merge($adminFieldKeys, $allowedDynamic)) as $field) {
+            // Gunakan has() bukan input() agar field kosong pun tersimpan sebagai null
+            if ($request->exists($field)) {
+                $val = $request->input($field);
+                $updateData[$field] = ($val !== '' && $val !== null) ? $val : null;
+            }
+        }
 
-            // LAYAK TERBANG
-            'tgl_berobat'     => $request->tgl_berobat,
-            'status_kehamilan' => $request->status_kehamilan,
-            'usia_kehamilan_hpht' => $request->usia_kehamilan_hpht,
-            'usia_kehamilan_minggu' => $request->usia_kehamilan_minggu,
-            'usia_kehamilan_hari' => $request->usia_kehamilan_hari,
-            'kondisi_ibu'     => $request->kondisi_ibu,
-
-            // KEHILANGAN AKTE
-            'no_surat_kelahiran' => $request->no_surat_kelahiran,
-            'jenis_kelamin_bayi' => $request->jenis_kelamin_bayi,
-            'tgl_lahir_bayi'     => $request->tgl_lahir_bayi,
-            'jam_lahir_bayi'     => $request->jam_lahir_bayi,
-
-            // UMUM
-            'diagnosis'       => $request->diagnosis,
-            'nama_dokter'     => $request->nama_dokter,
-            'nama_persetujuan'=> $request->nama_persetujuan,
-        ]);
+        $data->update($updateData);
 
         return redirect()->route('permintaan.index')
-            ->with('success','Data berhasil diupdate');
+            ->with('success', 'Data berhasil diupdate');
     }
 
     // =========================
@@ -170,7 +181,7 @@ class PermintaanController extends Controller
     public function updateStatus(Request $request, $id)
     {
         $request->validate([
-            'status' => 'required|in:pending,diproses,selesai,ditolak',
+            'status' => 'required|in:pending,diproses,selesai',
         ]);
 
         $data = Permintaan::findOrFail($id);

@@ -6,23 +6,18 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::table('layanans', function (Blueprint $table) {
-            $table->string('template_path')->nullable();
+            // 'kiri', 'kanan', atau null (tidak tampil tanggal)
+            $table->string('ttd_tanggal_posisi')->nullable()->after('ttd_kanan_label_en');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::table('layanans', function (Blueprint $table) {
-            $table->dropColumn('template_path');
+            $table->dropColumn('ttd_tanggal_posisi');
         });
     }
 };

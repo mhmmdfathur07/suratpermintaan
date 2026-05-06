@@ -232,95 +232,75 @@
 
                 <hr class="my-4">
 
-                {{-- DATA MEDIS DINAMIS --}}
-                @if($data->layanan == 'Surat Keterangan Rawat Inap')
-                    <div class="section-title">Data Medis Rawat Inap</div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Tanggal Masuk</label>
-                            <input type="date" name="tgl_masuk" value="{{ old('tgl_masuk', $data->tgl_masuk) }}" class="form-control">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Tanggal Keluar</label>
-                            <input type="date" name="tgl_keluar" value="{{ old('tgl_keluar', $data->tgl_keluar) }}" class="form-control">
-                        </div>
-                    </div>
+                {{-- FIELD ISI SURAT — diisi admin --}}
+                @php
+                    $fieldLabels = [
+                        'diagnosis'             => 'Diagnosis',
+                        'tgl_masuk'             => 'Tanggal Masuk',
+                        'tgl_keluar'            => 'Tanggal Keluar',
+                        'tgl_periksa'           => 'Tanggal Periksa',
+                        'tgl_berobat'           => 'Tanggal Berobat',
+                        'tgl_lahir_bayi'        => 'Tanggal Lahir Bayi',
+                        'jam_lahir_bayi'        => 'Jam Lahir Bayi',
+                        'poliklinik'            => 'Poliklinik',
+                        'status_kehamilan'      => 'Status Kehamilan',
+                        'usia_kehamilan_minggu' => 'Usia Kehamilan (Minggu)',
+                        'usia_kehamilan_hari'   => 'Usia Kehamilan (Hari)',
+                        'no_surat_kelahiran'    => 'No. Surat Kelahiran',
+                        'jenis_kelamin_bayi'    => 'Jenis Kelamin Bayi',
+                        'kondisi_ibu'           => 'Kondisi Ibu',
+                        'nama_dokter'           => 'Nama Dokter',
+                        'nama_persetujuan'      => 'Nama Persetujuan',
+                    ];
+                    $dateFields   = ['tgl_masuk','tgl_keluar','tgl_periksa','tgl_berobat','tgl_lahir_bayi'];
+                    $timeFields   = ['jam_lahir_bayi'];
+                    $numberFields = ['usia_kehamilan_minggu','usia_kehamilan_hari'];
+                @endphp
 
-                @elseif($data->layanan == 'Surat Keterangan Rawat Jalan')
-                    <div class="section-title">Data Medis Rawat Jalan</div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Poliklinik</label>
-                            <input type="text" name="poliklinik" value="{{ old('poliklinik', $data->poliklinik) }}" class="form-control">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Tanggal Periksa</label>
-                            <input type="date" name="tgl_periksa" value="{{ old('tgl_periksa', $data->tgl_periksa) }}" class="form-control">
-                        </div>
-                    </div>
-
-                @elseif($data->layanan == 'Surat Keterangan Layak Terbang')
-                    <div class="section-title">Data Medis Layak Terbang</div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Tanggal Berobat</label>
-                            <input type="date" name="tgl_berobat" value="{{ old('tgl_berobat', $data->tgl_berobat) }}" class="form-control">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Status Kehamilan</label>
-                            <input type="text" name="status_kehamilan" value="{{ old('status_kehamilan', $data->status_kehamilan) }}" class="form-control" placeholder="Contoh: Hamil / Tidak Hamil">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Usia Kehamilan (Minggu)</label>
-                            <input type="number" name="usia_kehamilan_minggu" value="{{ old('usia_kehamilan_minggu', $data->usia_kehamilan_minggu) }}" class="form-control" placeholder="Contoh: 12">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Usia Kehamilan (Hari)</label>
-                            <input type="number" name="usia_kehamilan_hari" value="{{ old('usia_kehamilan_hari', $data->usia_kehamilan_hari) }}" class="form-control" placeholder="Contoh: 3">
-                        </div>
-                    </div>
-
-                @elseif($data->layanan == 'Surat Kehilangan Akte Lahir')
-                    <div class="section-title">Data Kehilangan Akte</div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">No. Surat Kelahiran (setelah RM/SRTLHR/)</label>
-                            <input type="text" name="no_surat_kelahiran" value="{{ old('no_surat_kelahiran', $data->no_surat_kelahiran) }}" class="form-control" placeholder="Contoh: 01/2026">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Jenis Kelamin Bayi</label>
-                            <select name="jenis_kelamin_bayi" class="form-select">
-                                <option value="">-- Pilih --</option>
-                                <option value="Laki-laki" {{ old('jenis_kelamin_bayi', $data->jenis_kelamin_bayi) == 'Laki-laki' ? 'selected' : '' }}>Laki-laki</option>
-                                <option value="Perempuan" {{ old('jenis_kelamin_bayi', $data->jenis_kelamin_bayi) == 'Perempuan' ? 'selected' : '' }}>Perempuan</option>
+                @if($isiFields->count())
+                <div class="section-title mt-4">Isi Surat</div>
+                <div class="row">
+                    @foreach($isiFields as $key)
+                    @php
+                        $label = $fieldLabels[$key] ?? ucfirst(str_replace('_', ' ', $key));
+                        $type  = in_array($key, $dateFields) ? 'date' : (in_array($key, $timeFields) ? 'time' : (in_array($key, $numberFields) ? 'number' : 'text'));
+                    @endphp
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">{{ $label }}</label>
+                        @if($key === 'nama_dokter')
+                            <select name="nama_dokter" id="select-dokter-isi" form="form-kiri" class="form-select">
+                                <option value="">-- Pilih Dokter --</option>
+                                @foreach($doctors as $dokter)
+                                    <option value="{{ $dokter->nama_dokter }}"
+                                        {{ old('nama_dokter', $data->nama_dokter) === $dokter->nama_dokter ? 'selected' : '' }}>
+                                        {{ $dokter->nama_dokter }}{{ $dokter->spesialisasi ? ' - '.$dokter->spesialisasi : '' }}
+                                    </option>
+                                @endforeach
                             </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Tanggal Lahir Bayi</label>
-                            <input type="date" name="tgl_lahir_bayi" value="{{ old('tgl_lahir_bayi', $data->tgl_lahir_bayi) }}" class="form-control">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Jam Lahir Bayi (WIB)</label>
-                            <input type="text" name="jam_lahir_bayi" value="{{ old('jam_lahir_bayi', $data->jam_lahir_bayi) }}" class="form-control" placeholder="Contoh: 08.30">
-                        </div>
+                        @elseif($key === 'jenis_kelamin_bayi')
+                            <select name="jenis_kelamin_bayi" form="form-kiri" class="form-select">
+                                <option value="">-- Pilih --</option>
+                                <option value="Laki-laki" {{ old($key, $data->$key) == 'Laki-laki' ? 'selected' : '' }}>Laki-laki</option>
+                                <option value="Perempuan" {{ old($key, $data->$key) == 'Perempuan' ? 'selected' : '' }}>Perempuan</option>
+                            </select>
+                        @else
+                            <input type="{{ $type }}" name="{{ $key }}" form="form-kiri"
+                                   value="{{ old($key, $data->$key) }}" class="form-control"
+                                   placeholder="{{ $label }}">
+                        @endif
                     </div>
+                    @endforeach
+                </div>
                 @endif
 
             </form>
         </div>
         </div>
 
-        {{-- CARD KANAN: Informasi Tambahan --}}
+        {{-- CARD KANAN: Administrasi --}}
         <div class="col-xl-4 col-lg-5">
         <div class="form-card">
-            <div class="section-title">Informasi Tambahan</div>
-
-                @if(!in_array($data->layanan, ['Surat Keterangan Layak Terbang', 'Surat Kehilangan Akte Lahir']))
-                    <div class="mb-3">
-                        <label class="form-label">Diagnosis</label>
-                        <input type="text" name="diagnosis" form="form-kiri" value="{{ old('diagnosis', $data->diagnosis) }}" class="form-control">
-                    </div>
-                @endif
+            <div class="section-title">Administrasi</div>
 
                 <div class="mb-3">
                     <label class="form-label">Nama Dokter</label>
@@ -335,17 +315,24 @@
                     </select>
                 </div>
 
-                @if(!in_array($data->layanan, ['Surat Keterangan Layak Terbang', 'Surat Kehilangan Akte Lahir']))
-                    <div class="mb-3">
-                        <label class="form-label">Nama Persetujuan</label>
-                        <input type="text" name="nama_persetujuan" form="form-kiri" value="{{ old('nama_persetujuan', $data->nama_persetujuan) }}" class="form-control">
-                    </div>
-                @endif
-
                 <div class="mb-3">
                     <label class="form-label">Nama Penerima</label>
-                    <input type="text" name="nm_penerima" form="form-kiri" value="{{ old('nm_penerima', $data->nm_penerima) }}" class="form-control" required>
+                    <input type="text" name="nm_penerima" form="form-kiri" value="{{ old('nm_penerima', $data->nm_penerima) }}" class="form-control">
                 </div>
+
+                @if($allLayananFields->contains('diagnosis') && !$isiFields->contains('diagnosis'))
+                <div class="mb-3">
+                    <label class="form-label">Diagnosis</label>
+                    <input type="text" name="diagnosis" form="form-kiri" value="{{ old('diagnosis', $data->diagnosis) }}" class="form-control">
+                </div>
+                @endif
+
+                @if($allLayananFields->contains('nama_persetujuan') && !$isiFields->contains('nama_persetujuan'))
+                <div class="mb-3">
+                    <label class="form-label">Nama Persetujuan</label>
+                    <input type="text" name="nama_persetujuan" form="form-kiri" value="{{ old('nama_persetujuan', $data->nama_persetujuan) }}" class="form-control">
+                </div>
+                @endif
 
                 <div class="mb-3">
                     <label class="form-label">Petugas RM</label>

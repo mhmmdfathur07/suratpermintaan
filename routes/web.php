@@ -9,6 +9,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\DoctorController;
+use App\Http\Controllers\KategoriController;
 
 /*
 |--------------------------------------------------------------------------
@@ -60,6 +61,16 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/permintaan/{id}', [PermintaanController::class, 'destroy'])->name('permintaan.destroy');
     Route::patch('/permintaan/{id}/status', [PermintaanController::class, 'updateStatus'])->name('permintaan.updateStatus');
     Route::post('/permintaan/{id}/upload', [PermintaanController::class, 'uploadSurat'])->name('permintaan.upload');
+
+    /* ===== MASTER KATEGORI ===== */
+    Route::prefix('master/kategori')->name('master.kategori.')->group(function () {
+        Route::get('/', [KategoriController::class, 'index'])->name('index');
+        Route::get('/create', [KategoriController::class, 'create'])->name('create');
+        Route::post('/', [KategoriController::class, 'store'])->name('store');
+        Route::get('/{id}/edit', [KategoriController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [KategoriController::class, 'update'])->name('update');
+        Route::delete('/{id}', [KategoriController::class, 'destroy'])->name('destroy');
+    });
 
     /* ===== MASTER LAYANAN ===== */
     Route::prefix('master/layanan')->name('master.layanan.')->group(function () {
