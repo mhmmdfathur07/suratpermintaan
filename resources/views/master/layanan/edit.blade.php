@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+    <link rel="icon" type="image/jpeg" href="{{ asset('assets/imagesicon.jpg') }}">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Edit Layanan</title>
@@ -71,6 +72,7 @@
     <nav class="sidebar-nav">
         <div class="sidebar-label">Menu</div>
         <a href="{{ route('permintaan.index') }}" class="sidebar-link"><i class="bi bi-list-ul"></i> Permintaan</a>
+        @if(auth()->user()->role === 'admin')
         <div class="sidebar-dropdown open">
             <button class="sidebar-link sidebar-dropdown-toggle w-100" onclick="toggleSidebarDropdown(this)">
                 <i class="bi bi-gear-fill"></i><span>Master</span>
@@ -81,6 +83,7 @@
                 <a href="{{ route('master.layanan.index') }}" class="sidebar-sublink active"><i class="bi bi-file-earmark-text-fill"></i> Layanan</a>
             </div>
         </div>
+        @endif
         @if(auth()->user()->role === 'admin')
         <div class="sidebar-dropdown">
             <button class="sidebar-link sidebar-dropdown-toggle w-100" onclick="toggleSidebarDropdown(this)">
@@ -93,7 +96,6 @@
                 <a href="{{ route('master.user.index') }}?tab=karyawan" class="sidebar-sublink"><i class="bi bi-person-badge-fill"></i> Data Karyawan</a>
             </div>
         </div>
-        <a href="{{ route('master.doctor.index') }}" class="sidebar-link"><i class="bi bi-hospital-fill"></i> Data Dokter</a>
         @endif
     </nav>
     <div class="sidebar-footer">
@@ -138,7 +140,7 @@
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Kategori</label>
-                    <select name="kategori_id" class="form-select">
+                    <select name="kategori_id" id="kategoriSelect" class="form-select">
                         <option value="">-- Pilih Kategori --</option>
                         @foreach($kategoris as $kat)
                             <option value="{{ $kat->id }}"
@@ -174,10 +176,38 @@
                         <label class="form-check-label" for="is_active" style="font-size:13px; font-weight:500;">Aktif</label>
                     </div>
                 </div>
+                <div class="col-12">
+                    <div class="section-title mt-2" style="font-size:13px;"><i class="bi bi-toggles me-1"></i>Konfigurasi Field Tambahan di Form Pengajuan</div>
+                    <div class="d-flex flex-wrap gap-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="show_dokter_section" id="show_dokter_section" value="1" {{ old('show_dokter_section', $layanan->show_dokter_section) ? 'checked' : '' }}>
+                            <label class="form-check-label" for="show_dokter_section" style="font-size:13px; font-weight:500;">Tampilkan bagian Korespondensi (Nama Peminta, Email, dll)</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="show_nama_dokter" id="show_nama_dokter" value="1" {{ old('show_nama_dokter', $layanan->show_nama_dokter) ? 'checked' : '' }}>
+                            <label class="form-check-label" for="show_nama_dokter" style="font-size:13px; font-weight:500;">Tampilkan field Nama Dokter</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="show_nama_suami" id="show_nama_suami" value="1" {{ old('show_nama_suami', $layanan->show_nama_suami) ? 'checked' : '' }}>
+                            <label class="form-check-label" for="show_nama_suami" style="font-size:13px; font-weight:500;">Tampilkan field Nama Suami</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="show_bangsa" id="show_bangsa" value="1" {{ old('show_bangsa', $layanan->show_bangsa) ? 'checked' : '' }}>
+                            <label class="form-check-label" for="show_bangsa" style="font-size:13px; font-weight:500;">Tampilkan field Bangsa</label>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
         {{-- BIODATA FIELDS --}}
+        @if(!$layanan->template_path)
+        <div class="alert" style="background:#fff8e1; border:1.5px solid #ffe082; border-radius:12px; padding:14px 18px; font-size:13.5px; color:#7a5c00; margin-bottom:0;">
+            <i class="bi bi-info-circle-fill me-2"></i>
+            Layanan ini berasal dari pengajuan <strong>Lain-lain</strong> dan hanya mendukung upload file.
+            Konfigurasi template surat tidak tersedia.
+        </div>
+        @else
         <div class="form-card">
             <div class="section-title"><i class="bi bi-person-lines-fill me-2"></i>Kolom Biodata</div>
             <p class="text-muted" style="font-size:12.5px;">Tentukan kolom biodata yang tampil di surat. Urutan sesuai posisi di bawah.</p>
@@ -253,9 +283,16 @@
                 <span class="placeholder-badge" onclick="copyText('jenis_kelamin_bayi')">jenis_kelamin_bayi</span>
                 <span class="placeholder-badge" onclick="copyText('tgl_lahir_bayi')">tgl_lahir_bayi</span>
                 <span class="placeholder-badge" onclick="copyText('jam_lahir_bayi')">jam_lahir_bayi</span>
+                <span class="placeholder-badge" onclick="copyText('nama_suami')">nama_suami</span>
+                <span class="placeholder-badge" onclick="copyText('email_peminta')">email_peminta</span>
+                <span class="placeholder-badge" onclick="copyText('no_whatsapp')">no_whatsapp</span>
+                <span class="placeholder-badge" onclick="copyText('up')">up</span>
+                <span class="placeholder-badge" onclick="copyText('jumlah_form_asuransi')">jumlah_form_asuransi</span>
+                <span class="placeholder-badge" onclick="copyText('tgl_rencana_kirim')">tgl_rencana_kirim</span>
             </div>
         </div>
 
+        {{-- ISI SURAT, PENUTUP, TTD — hanya untuk layanan dengan template --}}
         {{-- ISI SURAT --}}
         <div class="form-card">
             <div class="section-title"><i class="bi bi-file-text me-2"></i>Isi Surat</div>
@@ -311,6 +348,13 @@
                     <label class="form-label">Label TTD Kanan (EN)</label>
                     <input type="text" name="ttd_kanan_label_en" class="form-control" value="{{ old('ttd_kanan_label_en', $layanan->ttd_kanan_label_en) }}">
                 </div>
+                <div class="col-md-6">
+                    <label class="form-label">TTD Kanan diisi oleh</label>
+                    <select name="ttd_kanan_sumber" class="form-select">
+                        <option value="persetujuan" {{ old('ttd_kanan_sumber', $layanan->ttd_kanan_sumber) === 'persetujuan' ? 'selected' : '' }}>Nama Persetujuan (diisi admin)</option>
+                        <option value="dokter" {{ old('ttd_kanan_sumber', $layanan->ttd_kanan_sumber) === 'dokter' ? 'selected' : '' }}>Nama Dokter (dari pengajuan)</option>
+                    </select>
+                </div>
                 <div class="col-12">
                     <label class="form-label">Posisi Tanggal</label>
                     <select name="ttd_tanggal_posisi" class="form-select">
@@ -322,7 +366,9 @@
             </div>
         </div>
 
-        <div class="d-flex gap-3 mb-5">
+        @endif {{-- end: template_path check --}}
+
+        <div class="d-flex gap-3 mb-5" style="margin-top: 24px;">
             <button type="submit" class="btn-update"><i class="bi bi-save"></i> Update Layanan</button>
             <a href="{{ route('master.layanan.index') }}" class="btn-back">Batal</a>
         </div>
@@ -332,7 +378,21 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
+$(document).ready(function() {
+    $('#kategoriSelect').select2({
+        placeholder: '-- Pilih Kategori --',
+        allowClear: true,
+        width: '100%',
+        language: {
+            noResults: () => 'Kategori tidak ditemukan',
+            searching: () => 'Mencari...'
+        }
+    });
+});
 function toggleSidebarDropdown(btn) {
     btn.closest('.sidebar-dropdown').classList.toggle('open');
 }

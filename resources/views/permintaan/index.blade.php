@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+    <link rel="icon" type="image/jpeg" href="{{ asset('assets/imagesicon.jpg') }}">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Data Permintaan Layanan</title>
@@ -285,9 +286,23 @@
         <a href="{{ route('permintaan.index') }}" class="sidebar-link active-page">
             <i class="bi bi-list-ul"></i> Permintaan
         </a>
-        <a href="{{ route('master.layanan.index') }}" class="sidebar-link">
-            <i class="bi bi-gear-fill"></i> Layanan
-        </a>
+        @if(auth()->user()->role === 'admin')
+        <div class="sidebar-dropdown">
+            <button class="sidebar-link sidebar-dropdown-toggle w-100" onclick="toggleSidebarDropdown(this)">
+                <i class="bi bi-gear-fill"></i>
+                <span>Master</span>
+                <i class="bi bi-chevron-down sidebar-chevron ms-auto"></i>
+            </button>
+            <div class="sidebar-submenu">
+                <a href="{{ route('master.kategori.index') }}" class="sidebar-sublink">
+                    <i class="bi bi-tags-fill"></i> Kategori
+                </a>
+                <a href="{{ route('master.layanan.index') }}" class="sidebar-sublink">
+                    <i class="bi bi-file-earmark-text-fill"></i> Layanan
+                </a>
+            </div>
+        </div>
+        @endif
         @if(auth()->user()->role === 'admin')
         <div class="sidebar-dropdown">
             <button class="sidebar-link sidebar-dropdown-toggle w-100" onclick="toggleSidebarDropdown(this)">
@@ -307,9 +322,6 @@
                 </a>
             </div>
         </div>
-        <a href="{{ route('master.doctor.index') }}" class="sidebar-link">
-            <i class="bi bi-hospital-fill"></i> Data Dokter
-        </a>
         @endif
     </nav>
     <div class="sidebar-footer">
@@ -452,7 +464,7 @@
                             <td class="text-center">
                                 <div class="d-flex justify-content-center gap-1">
                                     @php
-                                        $hasTemplate = !empty($layananTemplateMap[$row->layanan] ?? null);
+                                        $hasTemplate = !$row->is_lain_lain && !empty($layananTemplateMap[$row->layanan] ?? null);
                                     @endphp
 
                                     {{-- Cetak: hanya tampil jika ada template --}}
@@ -512,7 +524,7 @@
             </div>
         </div>
 
-        @if(method_exists($data, 'links'))
+        @if($data->hasPages())
             <div class="d-flex justify-content-end mt-3">
                 {{ $data->links() }}
             </div>
@@ -621,18 +633,6 @@
     }
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-<script>
-    $(document).ready(function() {
-        $('#filterLayanan').select2({
-            placeholder: '— Semua Layanan —',
-            allowClear: true,
-            width: 'resolve',
-            dropdownAutoWidth: true,
-        });
-    });
-</script>
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>

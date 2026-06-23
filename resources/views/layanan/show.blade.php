@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+    <link rel="icon" type="image/jpeg" href="{{ asset('assets/imagesicon.jpg') }}">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Detail Permintaan</title>
@@ -169,9 +170,14 @@
             </div>
         </div>
         <div class="header-actions">
-            <a href="{{ route('user.permintaan') }}" class="btn-nav">
-                <i class="bi bi-arrow-left"></i> Kembali
-            </a>
+            <a href="{{ route('layanan.index') }}" class="btn-nav"><i class="bi bi-plus-circle me-1"></i> Ajukan Layanan</a>
+            <a href="{{ route('user.permintaan') }}" class="btn-nav active"><i class="bi bi-list-check me-1"></i> History Permintaan</a>
+            <div class="divider-v"></div>
+            <div class="user-info"><i class="bi bi-person-circle"></i> <span>{{ auth()->user()->name }}</span></div>
+            <form method="POST" action="{{ route('logout') }}" class="m-0">
+                @csrf
+                <button type="submit" class="btn btn-outline-danger btn-logout"><i class="bi bi-box-arrow-right"></i></button>
+            </form>
         </div>
     </div>
 </div>
@@ -272,11 +278,17 @@
                     <i class="bi bi-arrow-left"></i> Kembali
                 </a>
                 @if($data->status == 'selesai')
-                    <a href="{{ route('user.permintaan.download', $data->id) }}"
-                       target="_blank" rel="noopener noreferrer"
-                       class="btn-download-main">
-                        <i class="bi bi-download"></i> Unduh Surat
-                    </a>
+                    <div class="d-flex gap-2">
+                        <a href="{{ route('user.permintaan.preview', $data->id) }}"
+                           target="_blank" rel="noopener noreferrer"
+                           class="btn-download-main" style="background:#1a6fb5;">
+                            <i class="bi bi-eye-fill"></i> Preview
+                        </a>
+                        <a href="{{ route('user.permintaan.download', $data->id) }}"
+                           class="btn-download-main">
+                            <i class="bi bi-download"></i> Unduh Surat
+                        </a>
+                    </div>
                 @else
                     <span class="text-muted" style="font-size:13px;">
                         <i class="bi bi-clock"></i> Surat tersedia setelah status selesai

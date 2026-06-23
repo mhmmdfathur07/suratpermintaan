@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+    <link rel="icon" type="image/jpeg" href="{{ asset('assets/imagesicon.jpg') }}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Master Akun & Role</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
     <style>
         *, *::before, *::after { box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #e6f7f6, #f4fbfa); min-height: 100vh; display: flex; margin: 0; overflow-x: hidden; }
@@ -118,26 +120,30 @@
         /* ── EMPTY STATE ── */
         .empty-state { padding: 60px 20px; text-align: center; color: #aaa; }
         .empty-state i { font-size: 48px; margin-bottom: 12px; display: block; color: #c8e6e5; }
+
+        /* ── FILTER SELECT ── */
+        .filter-select {
+            border-radius: 10px; border: 1.5px solid #d0e8e7;
+            height: 38px; font-size: 13.5px; padding: 0 12px;
+            background: #fff; color: #333;
+            transition: border-color .2s, box-shadow .2s; appearance: auto;
+        }
+        .filter-select:focus { border-color: #005654; box-shadow: 0 0 0 3px rgba(0,86,84,.1); outline: none; }
         .empty-state p { font-size: 14px; margin: 0; }
 
-        /* ── FORM PANEL (tambah user inline) ── */
-        .form-panel { background: #fff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,.06); padding: 28px 32px; width: 460px; flex-shrink: 0; align-self: flex-start; position: sticky; top: 20px; }
-        .form-panel-title { font-size: 16px; font-weight: 800; color: #005654; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
-        .form-panel .form-label { font-weight: 600; font-size: 13.5px; color: #444; margin-bottom: 4px; }
-        .form-panel .form-control, .form-panel .form-select { border-radius: 8px; border: 1.5px solid #d0e8e7; font-size: 13.5px; }
-        .form-panel .form-control:focus, .form-panel .form-select:focus { border-color: #005654; box-shadow: 0 0 0 3px rgba(0,86,84,.1); }
-        .form-panel .info-badge { background: #e6f7f6; color: #005654; border-radius: 8px; padding: 8px 12px; font-size: 12.5px; margin-bottom: 14px; }
-        .form-panel .section-divider { border-top: 1.5px dashed #d0e8e7; margin: 16px 0; }
-        .btn-simpan-user { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 10px; background: #005654; color: #fff; font-size: 13.5px; font-weight: 700; border-radius: 10px; border: none; cursor: pointer; transition: background .2s, transform .15s; }
-        .btn-simpan-user:hover { background: #007a77; transform: translateY(-1px); }
-
-        /* Select2 inside form-panel */
-        .form-panel .select2-container--default .select2-selection--single { border-radius: 8px; border: 1.5px solid #d0e8e7; height: calc(1.5em + 0.75rem + 2px); padding: 0.375rem 0.75rem; font-size: 13.5px; }
-        .form-panel .select2-container--default .select2-selection--single .select2-selection__rendered { line-height: 1.5; color: #333; padding-left: 0; }
-        .form-panel .select2-container--default .select2-selection--single .select2-selection__arrow { height: 100%; }
-        .form-panel .select2-container--default.select2-container--focus .select2-selection--single,
-        .form-panel .select2-container--default.select2-container--open .select2-selection--single { border-color: #005654; box-shadow: 0 0 0 3px rgba(0,86,84,0.1); outline: none; }
-        .form-panel .select2-container { width: 100% !important; }
+        /* Select2 di filter bar */
+        .filter-bar .select2-container--default .select2-selection--single {
+            border-radius: 10px; border: 1.5px solid #d0e8e7;
+            height: 38px; padding: 4px 10px; font-size: 13.5px;
+        }
+        .filter-bar .select2-container--default .select2-selection--single .select2-selection__rendered { line-height: 28px; color: #333; padding-left: 0; }
+        .filter-bar .select2-container--default .select2-selection--single .select2-selection__arrow { height: 36px; }
+        .filter-bar .select2-container--default.select2-container--focus .select2-selection--single,
+        .filter-bar .select2-container--default.select2-container--open .select2-selection--single { border-color: #005654; box-shadow: 0 0 0 3px rgba(0,86,84,.1); outline: none; }
+        .filter-bar .select2-dropdown { border: 1.5px solid #d0e8e7; border-radius: 10px; font-size: 13.5px; }
+        .filter-bar .select2-container--default .select2-search--dropdown .select2-search__field { border: 1.5px solid #d0e8e7; border-radius: 8px; padding: 5px 10px; font-size: 13px; }
+        .filter-bar .select2-container--default .select2-results__option--highlighted[aria-selected] { background: #005654; }
+        .filter-bar .select2-container--default .select2-selection--single .select2-selection__clear { margin-right: 20px; color: #aaa; font-size: 16px; }
     </style>
 </head>
 <body>
@@ -156,9 +162,23 @@
         <a href="{{ route('permintaan.index') }}" class="sidebar-link">
             <i class="bi bi-list-ul"></i> Permintaan
         </a>
-        <a href="{{ route('master.layanan.index') }}" class="sidebar-link">
-            <i class="bi bi-gear-fill"></i> Layanan
-        </a>
+        @if(auth()->user()->role === 'admin')
+        <div class="sidebar-dropdown">
+            <button class="sidebar-link sidebar-dropdown-toggle w-100" onclick="toggleSidebarDropdown(this)">
+                <i class="bi bi-gear-fill"></i>
+                <span>Master</span>
+                <i class="bi bi-chevron-down sidebar-chevron ms-auto"></i>
+            </button>
+            <div class="sidebar-submenu">
+                <a href="{{ route('master.kategori.index') }}" class="sidebar-sublink">
+                    <i class="bi bi-tags-fill"></i> Kategori
+                </a>
+                <a href="{{ route('master.layanan.index') }}" class="sidebar-sublink">
+                    <i class="bi bi-file-earmark-text-fill"></i> Layanan
+                </a>
+            </div>
+        </div>
+        @endif
         <div class="sidebar-dropdown open">
             <button class="sidebar-link sidebar-dropdown-toggle active w-100" onclick="toggleSidebarDropdown(this)">
                 <i class="bi bi-people-fill"></i>
@@ -177,9 +197,6 @@
                 </a>
             </div>
         </div>
-        <a href="{{ route('master.doctor.index') }}" class="sidebar-link">
-            <i class="bi bi-hospital-fill"></i> Data Dokter
-        </a>
     </nav>
     <div class="sidebar-footer">
         <div class="sidebar-user">
@@ -224,186 +241,216 @@
         <!-- TAB: MANAJEMEN USER                    -->
         <!-- ══════════════════════════════════════ -->
         <div id="tab-user" class="{{ $tab !== 'user' ? 'd-none' : '' }}">
-            <div class="d-flex gap-4 align-items-flex-start">
+            @php
+                $userByName      = $users->keyBy(fn($u) => strtolower($u->name));
+                $searchUser      = request('search');
+                $filterUserUnit  = request('filter_user_unit');
+                $filterUserPosisi = request('filter_user_posisi');
 
-                <!-- ── TABEL USER ── -->
-                <div class="flex-grow-1 min-width-0">
-                    <!-- Filter -->
-                    <div class="filter-bar mb-3">
-                        <form method="GET" action="{{ route('master.user.index') }}"
-                              class="d-flex align-items-center gap-2 flex-wrap w-100">
-                            <input type="hidden" name="tab" value="user">
-                            <div class="search-wrap">
-                                <i class="bi bi-search"></i>
-                                <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama...">
-                            </div>
-                            <select name="role" class="form-select" style="width:160px; height:38px; border-radius:10px; border:1.5px solid #d0e8e7; font-size:13.5px;">
-                                <option value="">Semua Role</option>
-                                @foreach($roles as $r)
-                                    <option value="{{ $r->name }}" {{ request('role') === $r->name ? 'selected' : '' }}>{{ $r->label }}</option>
-                                @endforeach
-                            </select>
-                            <button type="submit" class="btn-search"><i class="bi bi-search"></i> Cari</button>
-                            @if(request('search') || request('role'))
-                                <a href="{{ route('master.user.index') }}" class="btn-reset"><i class="bi bi-x-circle"></i> Reset</a>
-                            @endif
-                        </form>
+                $empFiltered = $employees;
+                if ($searchUser) {
+                    $s = strtolower($searchUser);
+                    $empFiltered = $empFiltered->filter(fn($e) => str_contains(strtolower($e->nama_karyawan), $s));
+                }
+                if ($filterUserUnit) {
+                    $empFiltered = $empFiltered->filter(fn($e) => $e->unit === $filterUserUnit);
+                }
+                if ($filterUserPosisi) {
+                    $empFiltered = $empFiltered->filter(fn($e) => $e->posisi_pekerjaan === $filterUserPosisi);
+                }
+
+                $empDenganAkun = $empFiltered->filter(fn($e) => isset($userByName[strtolower($e->nama_karyawan)]));
+                $empTanpaAkun  = $empFiltered->filter(fn($e) => !isset($userByName[strtolower($e->nama_karyawan)]));
+            @endphp
+
+            <!-- Filter -->
+            <div class="filter-bar mb-3">
+                <form method="GET" action="{{ route('master.user.index') }}"
+                      class="d-flex align-items-center gap-2 flex-wrap w-100">
+                    <input type="hidden" name="tab" value="user">
+                    <div class="search-wrap">
+                        <i class="bi bi-search"></i>
+                        <input type="text" name="search" value="{{ $searchUser }}" placeholder="Cari nama karyawan...">
                     </div>
-
-                    <div class="table-card">
-                        <div class="table-responsive">
-                        <table class="table table-hover align-middle">
-                            <thead>
-                                <tr>
-                                    <th style="width:40px;">#</th>
-                                    <th>Nama</th>
-                                    <th>Username</th>
-                                    <th>Role</th>
-                                    <th class="text-center">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($users as $i => $user)
-                                @php
-                                    $roleObj = $roles->firstWhere('name', $user->role);
-                                    $bgColor = $roleObj ? $roleObj->color . '22' : '#6c757d22';
-                                    $txtColor = $roleObj ? $roleObj->color : '#6c757d';
-                                @endphp
-                                <tr>
-                                    <td style="color:#888; font-size:13px;">{{ $i + 1 }}</td>
-                                    <td style="font-weight:600;">{{ $user->name }}</td>
-                                    <td style="color:#888;">{{ $user->username }}</td>
-                                    <td>
-                                        <span class="badge-role" style="background:{{ $bgColor }}; color:{{ $txtColor }};">
-                                            {{ $roleObj ? $roleObj->label : $user->role }}
-                                        </span>
-                                    </td>
-                                    <td class="text-center">
-                                        <div class="d-flex justify-content-center gap-1">
-                                                    <button type="button" class="btn-icon btn-icon-edit" title="Edit"
-                                                onclick="openEditUser({{ $user->id }}, '{{ addslashes($user->name) }}', '{{ addslashes($user->username) }}', '{{ addslashes($user->role) }}')">
-                                                <i class="bi bi-pencil"></i>
-                                            </button>
-                                            <form action="{{ route('master.user.destroy', $user->id) }}" method="POST" class="d-inline"
-                                                  onsubmit="return confirm('Yakin hapus akun {{ $user->name }}?')">
-                                                @csrf @method('DELETE')
-                                                <button type="submit" class="btn-icon btn-icon-delete" title="Hapus">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </td>
-                                </tr>
-                                @empty
-                                <tr>
-                                    <td colspan="5">
-                                        <div class="empty-state">
-                                            <i class="bi bi-people"></i>
-                                            <p>Belum ada akun pengguna.</p>
-                                        </div>
-                                    </td>
-                                </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ── FORM TAMBAH USER ── -->
-                <div class="form-panel">
-                    <div class="form-panel-title">
-                        <i class="bi bi-person-plus-fill" style="color:#81BD41;"></i> Tambah User
-                    </div>
-
-                    @if($errors->any() && $tab === 'user')
-                        <div class="alert alert-danger p-2 mb-3" style="border-radius:8px; font-size:12px;">
-                            <ul class="mb-0 ps-3">
-                                @foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach
-                            </ul>
-                        </div>
+                    <select id="sel_user_unit" name="filter_user_unit" class="filter-select" style="width:160px;">
+                        <option value="">Semua Unit</option>
+                        @foreach($filterUnits as $val)
+                            <option value="{{ $val }}" {{ $filterUserUnit == $val ? 'selected' : '' }}>{{ $val }}</option>
+                        @endforeach
+                    </select>
+                    <select id="sel_user_posisi" name="filter_user_posisi" class="filter-select" style="width:180px;">
+                        <option value="">Semua Posisi</option>
+                        @foreach($filterPosisis as $val)
+                            <option value="{{ $val }}" {{ $filterUserPosisi == $val ? 'selected' : '' }}>{{ $val }}</option>
+                        @endforeach
+                    </select>
+                    <button type="submit" class="btn-search"><i class="bi bi-search"></i> Cari</button>
+                    @if($searchUser || $filterUserUnit || $filterUserPosisi)
+                        <a href="{{ route('master.user.index') }}?tab=user" class="btn-reset"><i class="bi bi-x-circle"></i> Reset</a>
                     @endif
+                </form>
+            </div>
 
-                    <form action="{{ route('master.user.store') }}" method="POST" id="formTambahUser">
-                        @csrf
-
-                        <div class="mb-3">
-                            <label class="form-label">Pilih Karyawan <span class="text-danger">*</span></label>
-                            <select id="employee_select" name="employee_id" class="form-select" required>
-                                <option value="">-- Pilih Karyawan --</option>
-                                @foreach($employees as $emp)
-                                    <option value="{{ $emp->id }}"
-                                        data-nama="{{ $emp->nama_karyawan }}"
-                                        {{ old('employee_id') == $emp->id ? 'selected' : '' }}>
-                                        {{ $emp->nama_karyawan }} — {{ $emp->posisi_pekerjaan ?? $emp->jabatan ?? '-' }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <div class="section-divider"></div>
-
-                        <div id="user-account-fields">
-                            <div class="info-badge">
-                                <i class="bi bi-info-circle me-1"></i>
-                                Username dibuat otomatis dari nama depan dan nama belakang.
-                            </div>
-
-                            <div class="row g-2 mb-2">
-                                <div id="col_nama_depan" class="col-6">
-                                    <label class="form-label">Nama Depan</label>
-                                    <input type="text" id="u_nama_depan" name="nama_depan" class="form-control"
-                                           value="{{ old('nama_depan') }}" required placeholder="Nama depan">
-                                </div>
-                                <div id="col_nama_belakang" class="col-6">
-                                    <label class="form-label">Nama Belakang</label>
-                                    <input type="text" id="u_nama_belakang" name="nama_belakang" class="form-control"
-                                           value="{{ old('nama_belakang') }}" placeholder="Nama belakang">
-                                </div>
-                            </div>
-
-                            <div class="mb-2">
-                                <label class="form-label">Username</label>
-                                <input type="text" id="u_username" name="username" class="form-control"
-                                       value="{{ old('username') }}" readonly
-                                       style="background:#f4fbfa; color:#005654; font-weight:600;">
-                            </div>
-
-                            <div class="mb-2">
-                                <label class="form-label">Nama Lengkap</label>
-                                <input type="text" id="u_name" name="name" class="form-control"
-                                       value="{{ old('name') }}" required>
-                            </div>
-
-                            <div class="mb-2">
-                                <label class="form-label">Role</label>
-                                <select name="role" class="form-select" required>
-                                    <option value="">-- Pilih Role --</option>
-                                    @foreach($roles as $role)
-                                        <option value="{{ $role->name }}" {{ old('role') == $role->name ? 'selected' : '' }}>
-                                            {{ $role->label }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-                            <div class="mb-2">
-                                <label class="form-label">Password</label>
-                                <input type="password" name="password" class="form-control" required>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label">Konfirmasi Password</label>
-                                <input type="password" name="password_confirmation" class="form-control" required>
-                            </div>
-
-                            <button type="submit" class="btn-simpan-user">
-                                <i class="bi bi-save"></i> Simpan
-                            </button>
-                        </div>
-                    </form>
+            <!-- Sub-tab nav -->
+            <div class="d-flex align-items-center gap-3 mb-3 flex-wrap">
+                <div class="tab-nav">
+                    <button class="tab-btn active" id="subtab-btn-aktif" onclick="switchSubTab('aktif')">
+                        <i class="bi bi-person-check-fill"></i> Sudah Punya Akun
+                        <span class="count">{{ $empDenganAkun->count() }}</span>
+                    </button>
+                    <button class="tab-btn" id="subtab-btn-belum" onclick="switchSubTab('belum')">
+                        <i class="bi bi-person-x-fill"></i> Belum Punya Akun
+                        <span class="count">{{ $empTanpaAkun->count() }}</span>
+                    </button>
                 </div>
+                @if($empTanpaAkun->count() > 0)
+                <form action="{{ route('master.user.storeAll') }}" method="POST" class="ms-auto"
+                      onsubmit="return confirm('Buat akun untuk semua {{ $empTanpaAkun->count() }} karyawan yang belum punya akun? Role ditentukan otomatis dari jabatan & unit.')">
+                    @csrf
+                    <button type="submit" class="btn-tambah">
+                        <i class="bi bi-people-fill"></i> Buat Semua Akun ({{ $empTanpaAkun->count() }})
+                    </button>
+                </form>
+                @endif
+            </div>
 
+            <!-- Sub-tab: Sudah Punya Akun -->
+            <div id="subtab-aktif">
+                <div class="table-card">
+                    <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th style="width:40px;">#</th>
+                                <th>NIP</th>
+                                <th>Nama Karyawan</th>
+                                <th>Unit</th>
+                                <th>Posisi</th>
+                                <th>Jabatan</th>
+                                <th>Username</th>
+                                <th>Role</th>
+                                <th class="text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($empDenganAkun->values() as $i => $emp)
+                            @php
+                                $user    = $userByName[strtolower($emp->nama_karyawan)];
+                                $roleObj = $allRoles->firstWhere('name', $user->role);
+                                $bgColor  = $roleObj ? $roleObj->color . '22' : '#6c757d22';
+                                $txtColor = $roleObj ? $roleObj->color : '#6c757d';
+                            @endphp
+                            <tr>
+                                <td style="color:#888; font-size:13px;">{{ $i + 1 }}</td>
+                                <td><code style="background:#f4f4f4; padding:2px 8px; border-radius:6px; font-size:12.5px;">{{ $emp->nip }}</code></td>
+                                <td style="font-weight:600;">{{ $emp->nama_karyawan }}</td>
+                                <td style="color:#666; font-size:13px;">{{ $emp->unit }}</td>
+                                <td style="color:#666; font-size:13px;">{{ $emp->posisi_pekerjaan }}</td>
+                                <td style="color:#666; font-size:13px;">{{ $emp->jabatan ?? '-' }}</td>
+                                <td><code style="background:#f4f4f4; padding:2px 8px; border-radius:6px; font-size:12.5px;">{{ $user->username }}</code></td>
+                                <td>
+                                    <span class="badge-role" style="background:{{ $bgColor }}; color:{{ $txtColor }};">
+                                        {{ $roleObj ? $roleObj->label : $user->role }}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <div class="d-flex justify-content-center gap-1">
+                                        <button type="button" class="btn-icon btn-icon-edit" title="Edit Role"
+                                            onclick="openEditUserRole({{ $user->id }}, '{{ addslashes($emp->nama_karyawan) }}', '{{ addslashes($user->role) }}')">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <form action="{{ route('master.user.destroy', $user->id) }}" method="POST" class="d-inline"
+                                              onsubmit="return confirm('Yakin hapus akun {{ addslashes($emp->nama_karyawan) }}?')">
+                                            @csrf @method('DELETE')
+                                            <button type="submit" class="btn-icon btn-icon-delete" title="Hapus Akun">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="9">
+                                    <div class="empty-state">
+                                        <i class="bi bi-people"></i>
+                                        <p>Belum ada karyawan yang memiliki akun.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sub-tab: Belum Punya Akun -->
+            <div id="subtab-belum" class="d-none">
+                <div class="table-card">
+                    <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th style="width:40px;">#</th>
+                                <th>NIP</th>
+                                <th>Nama Karyawan</th>
+                                <th>Unit</th>
+                                <th>Posisi</th>
+                                <th>Jabatan</th>
+                                <th>Role (otomatis)</th>
+                                <th class="text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($empTanpaAkun->values() as $i => $emp)
+                            @php
+                                $jabatanBawah = ['STAFF', 'PENANGGUNG JAWAB', 'DOKTER SPESIALIS'];
+                                $jabatanUp    = strtoupper(trim($emp->jabatan ?? ''));
+                                $unitSlug     = 'unit_' . \Illuminate\Support\Str::slug(strtolower($emp->unit), '_');
+                                if (in_array($jabatanUp, $jabatanBawah)) {
+                                    $autoRole = $allRoles->firstWhere('name', 'user');
+                                } else {
+                                    $autoRole = $allRoles->firstWhere('name', $unitSlug) ?? $allRoles->firstWhere('name', 'user');
+                                }
+                                $roleBg  = $autoRole ? $autoRole->color . '22' : '#6c757d22';
+                                $roleTxt = $autoRole ? $autoRole->color : '#6c757d';
+                            @endphp
+                            <tr>
+                                <td style="color:#888; font-size:13px;">{{ $i + 1 }}</td>
+                                <td><code style="background:#f4f4f4; padding:2px 8px; border-radius:6px; font-size:12.5px;">{{ $emp->nip }}</code></td>
+                                <td style="font-weight:600;">{{ $emp->nama_karyawan }}</td>
+                                <td style="color:#666; font-size:13px;">{{ $emp->unit }}</td>
+                                <td style="color:#666; font-size:13px;">{{ $emp->posisi_pekerjaan }}</td>
+                                <td style="color:#666; font-size:13px;">{{ $emp->jabatan ?? '-' }}</td>
+                                <td>
+                                    <span class="badge-role" style="background:{{ $roleBg }}; color:{{ $roleTxt }};">
+                                        {{ $autoRole ? $autoRole->label : 'User' }}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <form action="{{ route('master.user.storeOne', $emp->id) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        <button type="submit" class="btn-icon" title="Buat Akun" style="color:#005654;">
+                                            <i class="bi bi-person-plus-fill"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="8">
+                                    <div class="empty-state">
+                                        <i class="bi bi-person-check"></i>
+                                        <p>Semua karyawan sudah memiliki akun.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -411,14 +458,26 @@
         <!-- TAB: MANAJEMEN ROLE                    -->
         <!-- ══════════════════════════════════════ -->
         <div id="tab-role" class="{{ $tab !== 'role' ? 'd-none' : '' }}">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <div>
-                    <div style="font-size:28px; font-weight:800; color:#005654;">Daftar Role</div>
-                    <div style="font-size:15px; color:#6b8f8a; margin-top:4px;">Kelola hak akses pengguna</div>
-                </div>
-                <button type="button" class="btn-primary-custom" data-bs-toggle="modal" data-bs-target="#modalTambahRole">
-                    <i class="bi bi-plus-lg"></i> Tambah Role
-                </button>
+        
+            <!-- Filter + Tambah -->
+            <div class="filter-bar mb-3">
+                <form method="GET" action="{{ route('master.user.index') }}"
+                      class="d-flex align-items-center gap-2 flex-wrap w-100">
+                    <input type="hidden" name="tab" value="role">
+                    <div class="search-wrap">
+                        <i class="bi bi-search"></i>
+                        <input type="text" name="search_role" value="{{ request('search_role') }}" placeholder="Cari nama / label role...">
+                    </div>
+                    <button type="submit" class="btn-search"><i class="bi bi-search"></i> Cari</button>
+                    @if(request('search_role'))
+                        <a href="{{ route('master.user.index') }}?tab=role" class="btn-reset"><i class="bi bi-x-circle"></i> Reset</a>
+                    @endif
+                    <div class="ms-auto">
+                        <button type="button" class="btn-tambah" data-bs-toggle="modal" data-bs-target="#modalTambahRole">
+                            <i class="bi bi-plus-lg"></i> Tambah Role
+                        </button>
+                    </div>
+                </form>
             </div>
 
             <div class="table-card">
@@ -430,6 +489,7 @@
                             <th>Nama Role</th>
                             <th>Label</th>
                             <th>Deskripsi</th>
+                            <th>Halaman Login</th>
                             <th class="text-center">Warna</th>
                             <th class="text-center">Jumlah User</th>
                             <th class="text-center">Aksi</th>
@@ -446,6 +506,11 @@
                                 </span>
                             </td>
                             <td style="color:#888; font-size:13px;">{{ $role->description ?? '—' }}</td>
+                            <td style="font-size:13px;">
+                                <code style="background:#f4f4f4; padding:2px 8px; border-radius:6px; font-size:12px; color:#005654;">
+                                    {{ $role->redirect_to ?? '—' }}
+                                </code>
+                            </td>
                             <td class="text-center">
                                 <div class="d-flex align-items-center justify-content-center gap-2">
                                     <span class="color-swatch" style="background:{{ $role->color }};"></span>
@@ -459,7 +524,7 @@
                             <td class="text-center">
                                 <div class="d-flex justify-content-center gap-1">
                                     <button class="btn-icon btn-icon-edit" title="Edit"
-                                            onclick="openEditRole({{ $role->id }}, '{{ $role->name }}', '{{ addslashes($role->label) }}', '{{ addslashes($role->description ?? '') }}', '{{ $role->color }}')">
+                                            onclick="openEditRole({{ $role->id }}, '{{ $role->name }}', '{{ addslashes($role->label) }}', '{{ addslashes($role->description ?? '') }}', '{{ $role->color }}', '{{ $role->redirect_to ?? '/permintaan' }}', '{{ addslashes(json_encode($role->allowed_groups ?? [])) }}')">
                                         <i class="bi bi-pencil"></i>
                                     </button>
                                     <form action="{{ route('master.role.destroy', $role->id) }}" method="POST" class="d-inline"
@@ -492,10 +557,6 @@
         <!-- TAB: DATA KARYAWAN                     -->
         <!-- ══════════════════════════════════════ -->
         <div id="tab-karyawan" class="{{ $tab !== 'karyawan' ? 'd-none' : '' }}">
-            <div class="mb-3">
-                <div style="font-size:28px; font-weight:800; color:#005654;">Data Karyawan</div>
-                <div style="font-size:15px; color:#6b8f8a; margin-top:4px;">Kelola data karyawan rumah sakit</div>
-            </div>
 
             <div class="filter-bar mb-4">
                 <form method="GET" action="{{ route('master.user.index') }}"
@@ -503,10 +564,28 @@
                     <input type="hidden" name="tab" value="karyawan">
                     <div class="search-wrap">
                         <i class="bi bi-search"></i>
-                        <input type="text" name="search_karyawan" value="{{ request('search_karyawan') }}" placeholder="Cari nama karyawan...">
+                        <input type="text" name="search_karyawan" value="{{ request('search_karyawan') }}" placeholder="Cari nama / profesi...">
                     </div>
+                    <select id="kar_filter_unit" name="filter_unit" class="filter-select" style="width:160px;">
+                        <option value="">Semua Unit</option>
+                        @foreach($filterUnits as $val)
+                            <option value="{{ $val }}" {{ request('filter_unit') == $val ? 'selected' : '' }}>{{ $val }}</option>
+                        @endforeach
+                    </select>
+                    <select id="kar_filter_posisi" name="filter_posisi" class="filter-select" style="width:180px;">
+                        <option value="">Semua Posisi</option>
+                        @foreach($filterPosisis as $val)
+                            <option value="{{ $val }}" {{ request('filter_posisi') == $val ? 'selected' : '' }}>{{ $val }}</option>
+                        @endforeach
+                    </select>
+                    <select id="kar_filter_jabatan" name="filter_jabatan" class="filter-select" style="width:160px;">
+                        <option value="">Semua Jabatan</option>
+                        @foreach($filterJabatans as $val)
+                            <option value="{{ $val }}" {{ request('filter_jabatan') == $val ? 'selected' : '' }}>{{ $val }}</option>
+                        @endforeach
+                    </select>
                     <button type="submit" class="btn-search"><i class="bi bi-search"></i> Cari</button>
-                    @if(request('search_karyawan'))
+                    @if(request('search_karyawan') || request('filter_unit') || request('filter_posisi') || request('filter_jabatan'))
                         <a href="{{ route('master.user.index') }}?tab=karyawan" class="btn-reset"><i class="bi bi-x-circle"></i> Reset</a>
                     @endif
                     <div class="ms-auto">
@@ -602,6 +681,45 @@
                         <label class="form-label">Deskripsi <span style="color:#aaa; font-weight:400;">(opsional)</span></label>
                         <input type="text" name="description" class="form-control" placeholder="Deskripsi singkat role ini">
                     </div>
+                    <div class="mb-3">
+                        <label class="form-label">Halaman Setelah Login</label>
+                        <select name="redirect_to" class="form-select" required>
+                            <option value="/permintaan">Permintaan Surat</option>
+                            <option value="/layanan">Layanan (Form Pengajuan)</option>
+                            <option value="/user/permintaan">Riwayat Permintaan Saya</option>
+                            <option value="/master/user">Master Akun & Role</option>
+                            <option value="/master/layanan">Master Layanan</option>
+                            <option value="/master/kategori">Master Kategori</option>
+                        </select>
+                        <div style="font-size:12px; color:#888; margin-top:4px;">Halaman yang dituju saat user dengan role ini berhasil login.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Hak Akses Halaman</label>
+                        <div style="background:#f8fffe; border:1.5px solid #d0e8e7; border-radius:10px; padding:12px 16px;">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" name="allowed_groups[]" value="user" id="ag_add_user">
+                                <label class="form-check-label" for="ag_add_user" style="font-size:13.5px;">
+                                    <strong>Layanan & Pengajuan</strong>
+                                    <span style="color:#888; font-size:12px; display:block;">Akses /layanan dan /user/permintaan</span>
+                                </label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" name="allowed_groups[]" value="rekam_medis" id="ag_add_staff">
+                                <label class="form-check-label" for="ag_add_staff" style="font-size:13.5px;">
+                                    <strong>Permintaan Surat (Staff)</strong>
+                                    <span style="color:#888; font-size:12px; display:block;">Akses /permintaan dan manajemen surat</span>
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="allowed_groups[]" value="admin" id="ag_add_admin">
+                                <label class="form-check-label" for="ag_add_admin" style="font-size:13.5px;">
+                                    <strong>Master / Admin</strong>
+                                    <span style="color:#888; font-size:12px; display:block;">Akses /master (layanan, user, kategori)</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div style="font-size:12px; color:#888; margin-top:4px;">Centang halaman yang boleh diakses oleh role ini.</div>
+                    </div>
                     <div class="mb-1">
                         <label class="form-label">Warna Badge</label>
                         <div class="d-flex align-items-center gap-3">
@@ -646,6 +764,45 @@
                         <label class="form-label">Deskripsi <span style="color:#aaa; font-weight:400;">(opsional)</span></label>
                         <input type="text" name="description" id="editRoleDesc" class="form-control">
                     </div>
+                    <div class="mb-3">
+                        <label class="form-label">Halaman Setelah Login</label>
+                        <select name="redirect_to" id="editRoleRedirect" class="form-select" required>
+                            <option value="/permintaan">Permintaan Surat</option>
+                            <option value="/layanan">Layanan (Form Pengajuan)</option>
+                            <option value="/user/permintaan">Riwayat Permintaan Saya</option>
+                            <option value="/master/user">Master Akun & Role</option>
+                            <option value="/master/layanan">Master Layanan</option>
+                            <option value="/master/kategori">Master Kategori</option>
+                        </select>
+                        <div style="font-size:12px; color:#888; margin-top:4px;">Halaman yang dituju saat user dengan role ini berhasil login.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Hak Akses Halaman</label>
+                        <div style="background:#f8fffe; border:1.5px solid #d0e8e7; border-radius:10px; padding:12px 16px;">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" name="allowed_groups[]" value="user" id="ag_edit_user">
+                                <label class="form-check-label" for="ag_edit_user" style="font-size:13.5px;">
+                                    <strong>Layanan & Pengajuan</strong>
+                                    <span style="color:#888; font-size:12px; display:block;">Akses /layanan dan /user/permintaan</span>
+                                </label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" name="allowed_groups[]" value="rekam_medis" id="ag_edit_staff">
+                                <label class="form-check-label" for="ag_edit_staff" style="font-size:13.5px;">
+                                    <strong>Permintaan Surat (Staff)</strong>
+                                    <span style="color:#888; font-size:12px; display:block;">Akses /permintaan dan manajemen surat</span>
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="allowed_groups[]" value="admin" id="ag_edit_admin">
+                                <label class="form-check-label" for="ag_edit_admin" style="font-size:13.5px;">
+                                    <strong>Master / Admin</strong>
+                                    <span style="color:#888; font-size:12px; display:block;">Akses /master (layanan, user, kategori)</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div style="font-size:12px; color:#888; margin-top:4px;">Centang halaman yang boleh diakses oleh role ini.</div>
+                    </div>
                     <div class="mb-1">
                         <label class="form-label">Warna Badge</label>
                         <div class="d-flex align-items-center gap-3">
@@ -667,7 +824,6 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
 <script>
     function toggleSidebarDropdown(btn) {
         btn.closest('.sidebar-dropdown').classList.toggle('open');
@@ -677,47 +833,52 @@
             el.closest('.sidebar-dropdown')?.classList.add('open');
         });
 
-        // Select2 for employee picker
+        // Select2 untuk filter unit & posisi di tab user
         if (typeof $.fn.select2 !== 'undefined') {
-            $('#employee_select').select2({
-                dropdownParent: $('#formTambahUser'),
-                placeholder: '-- Pilih Karyawan --',
+            $('#sel_user_unit').select2({
+                placeholder: 'Semua Unit',
                 allowClear: true,
+                width: '160px',
+                language: { noResults: () => 'Unit tidak ditemukan', searching: () => 'Mencari...' }
+            }).on('select2:select select2:clear', function() {
+                this.closest('form').submit();
+            });
+
+            $('#sel_user_posisi').select2({
+                placeholder: 'Semua Posisi',
+                allowClear: true,
+                width: '200px',
+                language: { noResults: () => 'Posisi tidak ditemukan', searching: () => 'Mencari...' }
+            }).on('select2:select select2:clear', function() {
+                this.closest('form').submit();
+            });
+        }
+
+        // Select2 for employee picker — tidak digunakan lagi (form panel dihapus)
+
+            // Select2 untuk dropdown role di modal edit user
+            $('#er_role').select2({
+                dropdownParent: $('#modalEditUserRole'),
+                placeholder: '-- Pilih Role --',
+                allowClear: false,
+                width: '100%',
                 language: {
-                    noResults: () => 'Karyawan tidak ditemukan',
+                    noResults: () => 'Role tidak ditemukan',
                     searching: () => 'Mencari...'
                 }
             });
 
-            $('#employee_select').on('change', function () {
-                const selected = this.options[this.selectedIndex];
-                if (this.value) {
-                    const namaLengkap = selected.getAttribute('data-nama') || '';
-                    const { depan, belakang } = pisahkanNama(namaLengkap);
-                    document.getElementById('u_nama_depan').value = depan;
-                    document.getElementById('u_nama_belakang').value = belakang;
-                    document.getElementById('u_name').value = namaLengkap;
-
-                    // Sembunyikan nama belakang jika nama hanya satu kata
-                    const colDepan    = document.getElementById('col_nama_depan');
-                    const colBelakang = document.getElementById('col_nama_belakang');
-                    if (belakang) {
-                        colDepan.className    = 'col-6';
-                        colBelakang.classList.remove('d-none');
-                    } else {
-                        colDepan.className    = 'col-12';
-                        colBelakang.classList.add('d-none');
-                    }
-
-                    generateUsername();
-                }
-            });
-        }
-
-        // Auto-open form if there were validation errors on user tab
-        @if($errors->any() && $tab === 'user')
-            document.getElementById('user-account-fields').style.display = '';
-        @endif
+            // Select2 untuk filter di tab karyawan
+            const karOpts = {
+                allowClear: true,
+                language: { noResults: () => 'Tidak ditemukan', searching: () => 'Mencari...' }
+            };
+            $('#kar_filter_unit').select2({ ...karOpts, placeholder: 'Semua Unit', width: '160px' })
+                .on('select2:select select2:clear', function() { this.closest('form').submit(); });
+            $('#kar_filter_posisi').select2({ ...karOpts, placeholder: 'Semua Posisi', width: '200px' })
+                .on('select2:select select2:clear', function() { this.closest('form').submit(); });
+            $('#kar_filter_jabatan').select2({ ...karOpts, placeholder: 'Semua Jabatan', width: '160px' })
+                .on('select2:select select2:clear', function() { this.closest('form').submit(); });
     });
 
     function pisahkanNama(namaLengkap) {
@@ -743,23 +904,25 @@
         }
         // Bersihkan titik trailing dari setiap kata nama
         const bersih = kataNama.map(k => k.replace(/\.+$/, ''));
-        return { depan: bersih[0] || '', belakang: bersih.slice(1).join(' ') };
+        return { depan: bersih[0] || '', belakang: bersih[1] || '' };
     }
 
     function generateUsername() {
-        const depan = document.getElementById('u_nama_depan').value.trim().toLowerCase().replace(/\s+/g, '');
-        const belakang = document.getElementById('u_nama_belakang').value.trim().toLowerCase().replace(/\s+/g, '');
-        document.getElementById('u_username').value = belakang ? depan + '.' + belakang : depan;
+        // Digunakan oleh modal edit user (via editUserNamaDepan/Belakang)
+        const depan = (document.getElementById('editUserNamaDepan')?.value.trim().split(/\s+/)[0] || '').toLowerCase();
+        const belakang = (document.getElementById('editUserNamaBelakang')?.value.trim().split(/\s+/)[0] || '').toLowerCase();
+        if (document.getElementById('editUserUsername')) {
+            document.getElementById('editUserUsername').value = belakang ? depan + '.' + belakang : depan;
+        }
     }
 
     function updateFullName() {
-        const depan = document.getElementById('u_nama_depan').value.trim();
-        const belakang = document.getElementById('u_nama_belakang').value.trim();
-        document.getElementById('u_name').value = belakang ? depan + ' ' + belakang : depan;
+        const depan = document.getElementById('editUserNamaDepan')?.value.trim() || '';
+        const belakang = document.getElementById('editUserNamaBelakang')?.value.trim() || '';
+        if (document.getElementById('editUserName')) {
+            document.getElementById('editUserName').value = belakang ? depan + ' ' + belakang : depan;
+        }
     }
-
-    document.getElementById('u_nama_depan')?.addEventListener('input', () => { generateUsername(); updateFullName(); });
-    document.getElementById('u_nama_belakang')?.addEventListener('input', () => { generateUsername(); updateFullName(); });
 
     // Auto-generate username di modal edit user
     function generateEditUserUsername() {
@@ -775,6 +938,13 @@
     document.getElementById('editUserNamaDepan')?.addEventListener('input', () => { generateEditUserUsername(); updateEditUserFullName(); });
     document.getElementById('editUserNamaBelakang')?.addEventListener('input', () => { generateEditUserUsername(); updateEditUserFullName(); });
 
+    function switchSubTab(name) {
+        ['aktif','belum'].forEach(t => {
+            document.getElementById('subtab-' + t).classList.toggle('d-none', t !== name);
+            document.getElementById('subtab-btn-' + t).classList.toggle('active', t === name);
+        });
+    }
+
     function switchTab(tab) {
         ['user','role','karyawan'].forEach(t => {
             document.getElementById('tab-' + t).classList.toggle('d-none', t !== tab);
@@ -783,6 +953,13 @@
             const tabs = ['user','role','karyawan'];
             btn.classList.toggle('active', tabs[i] === tab);
         });
+    }
+
+    function openEditUserRole(userId, namaKaryawan, currentRole) {
+        document.getElementById('formEditUserRole').action = `/master/user/${userId}`;
+        document.getElementById('er_nama_display').value   = namaKaryawan;
+        $('#er_role').val(currentRole).trigger('change');
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('modalEditUserRole')).show();
     }
 
     function openEditUser(id, name, username, role) {
@@ -804,12 +981,18 @@
         bootstrap.Modal.getOrCreateInstance(document.getElementById('modalEditUser')).show();
     }
 
-    function openEditRole(id, name, label, description, color) {
+    function openEditRole(id, name, label, description, color, redirectTo, allowedGroups) {
         document.getElementById('formEditRole').action = `/master/role/${id}`;
         document.getElementById('editRoleName').value  = name;
         document.getElementById('editRoleLabel').value = label;
         document.getElementById('editRoleDesc').value  = description;
         document.getElementById('colorPickerEdit').value = color;
+        document.getElementById('editRoleRedirect').value = redirectTo || '/permintaan';
+        // Set checkboxes
+        const groups = allowedGroups ? JSON.parse(allowedGroups) : [];
+        document.getElementById('ag_edit_user').checked  = groups.includes('user');
+        document.getElementById('ag_edit_staff').checked = groups.includes('rekam_medis');
+        document.getElementById('ag_edit_admin').checked = groups.includes('admin');
         bootstrap.Modal.getOrCreateInstance(document.getElementById('modalEditRole')).show();
     }
 
@@ -877,7 +1060,7 @@
                     <div class="mb-3">
                         <label class="form-label">Role</label>
                         <select name="role" class="form-select" required>
-                            @foreach($roles as $role)
+                            @foreach($allRoles as $role)
                                 <option value="{{ $role->name }}">{{ $role->label }}</option>
                             @endforeach
                         </select>
@@ -993,6 +1176,42 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline-secondary" style="border-radius:10px;" data-bs-dismiss="modal">Batal</button>
                     <button type="submit" class="btn-primary-custom">Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════ -->
+<!-- MODAL: EDIT ROLE USER                  -->
+<!-- ══════════════════════════════════════ -->
+<div class="modal fade" id="modalEditUserRole" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form id="formEditUserRole" method="POST">
+                @csrf @method('PUT')
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" style="color:#005654;"><i class="bi bi-shield-fill me-2" style="color:#81BD41;"></i>Edit Role</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Nama Karyawan</label>
+                        <input type="text" id="er_nama_display" class="form-control" disabled
+                               style="background:#f4fbfa; color:#005654; font-weight:600;">
+                    </div>
+                    <div class="mb-1">
+                        <label class="form-label">Role <span class="text-danger">*</span></label>
+                        <select name="role" id="er_role" class="form-select" required style="width:100%;">
+                            @foreach($allRoles as $role)
+                                <option value="{{ $role->name }}">{{ $role->label }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" style="border-radius:10px;" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn-primary-custom"><i class="bi bi-save me-1"></i>Simpan</button>
                 </div>
             </form>
         </div>

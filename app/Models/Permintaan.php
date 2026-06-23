@@ -52,6 +52,7 @@ class Permintaan extends Model
     'role',
     'user_id',
     'keterangan',
+    'keterangan_lain_lain',
     'tgl_dibuat',
     'file_surat',
     'nama_peminta',
@@ -60,6 +61,7 @@ class Permintaan extends Model
     'up',
     'jumlah_form_asuransi',
     'tgl_rencana_kirim',
+    'is_lain_lain',
 ];
 
     /**

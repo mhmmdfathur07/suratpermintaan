@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+    <link rel="icon" type="image/jpeg" href="{{ asset('assets/imagesicon.jpg') }}">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Master Kategori</title>
@@ -87,6 +88,7 @@
         <a href="{{ route('permintaan.index') }}" class="sidebar-link">
             <i class="bi bi-list-ul"></i> Permintaan
         </a>
+        @if(auth()->user()->role === 'admin')
         <div class="sidebar-dropdown">
             <button class="sidebar-link sidebar-dropdown-toggle w-100" onclick="toggleSidebarDropdown(this)">
                 <i class="bi bi-gear-fill"></i>
@@ -102,6 +104,7 @@
                 </a>
             </div>
         </div>
+        @endif
         @if(auth()->user()->role === 'admin')
         <div class="sidebar-dropdown">
             <button class="sidebar-link sidebar-dropdown-toggle w-100" onclick="toggleSidebarDropdown(this)">
@@ -121,9 +124,6 @@
                 </a>
             </div>
         </div>
-        <a href="{{ route('master.doctor.index') }}" class="sidebar-link">
-            <i class="bi bi-hospital-fill"></i> Data Dokter
-        </a>
         @endif
     </nav>
     <div class="sidebar-footer">
@@ -205,10 +205,15 @@
                             </td>
                             <td class="td-muted">{{ $kategori->deskripsi ?? '-' }}</td>
                             <td>
-                                @if($kategori->role)
-                                    <span class="badge-role" style="background:{{ $kategori->warna }}">
-                                        {{ $kategori->role }}
-                                    </span>
+                                @php $roleList = $kategori->roles ?? []; @endphp
+                                @if(count($roleList) > 0)
+                                    <div class="d-flex flex-wrap gap-1">
+                                    @foreach($roleList as $rName)
+                                        <span class="badge-role" style="background:{{ $kategori->warna }}; font-size:11px; padding:2px 8px;">
+                                            {{ $rName }}
+                                        </span>
+                                    @endforeach
+                                    </div>
                                 @else
                                     <span class="td-muted">-</span>
                                 @endif

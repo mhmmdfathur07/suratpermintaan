@@ -22,8 +22,13 @@ class LayananController extends Controller
             });
         }
 
-        $layanans = $query->with('kategori')->orderBy('created_at', 'desc')->get();
-        return view('master.layanan.index', compact('layanans'));
+        if ($request->filled('kategori')) {
+            $query->where('kategori_id', $request->kategori);
+        }
+
+        $layanans  = $query->with('kategori')->orderBy('created_at', 'desc')->get();
+        $kategoris = \App\Models\Kategori::orderBy('nama')->get();
+        return view('master.layanan.index', compact('layanans', 'kategoris'));
     }
 
     public function create()
@@ -64,12 +69,16 @@ class LayananController extends Controller
             'ttd_kiri_label_en'  => $request->ttd_kiri_label_en,
             'ttd_kanan_label'    => $request->ttd_kanan_label,
             'ttd_kanan_label_en' => $request->ttd_kanan_label_en,
-            'ttd_tanggal_posisi' => $request->ttd_tanggal_posisi,
+            'ttd_tanggal_posisi'  => $request->ttd_tanggal_posisi,
+            'ttd_kanan_sumber'    => $request->ttd_kanan_sumber ?? 'persetujuan',
+            'show_dokter_section' => $request->has('show_dokter_section') ? 1 : 0,
+            'show_nama_dokter'    => $request->has('show_nama_dokter') ? 1 : 0,
+            'show_nama_suami'     => $request->has('show_nama_suami') ? 1 : 0,
+            'show_bangsa'         => $request->has('show_bangsa') ? 1 : 0,
         ]);
 
         // Simpan biodata fields
         $this->saveBiodataFields($layanan->id, $request);
-
         // Simpan isi template
         $this->saveIsiTemplate($layanan->id, $request);
 
@@ -120,7 +129,12 @@ class LayananController extends Controller
             'ttd_kiri_label_en'  => $request->ttd_kiri_label_en,
             'ttd_kanan_label'    => $request->ttd_kanan_label,
             'ttd_kanan_label_en' => $request->ttd_kanan_label_en,
-            'ttd_tanggal_posisi' => $request->ttd_tanggal_posisi,
+            'ttd_tanggal_posisi'  => $request->ttd_tanggal_posisi,
+            'ttd_kanan_sumber'    => $request->ttd_kanan_sumber ?? 'persetujuan',
+            'show_dokter_section' => $request->has('show_dokter_section') ? 1 : 0,
+            'show_nama_dokter'    => $request->has('show_nama_dokter') ? 1 : 0,
+            'show_nama_suami'     => $request->has('show_nama_suami') ? 1 : 0,
+            'show_bangsa'         => $request->has('show_bangsa') ? 1 : 0,
         ]);
         LayananBiodataField::where('layanan_id', $id)->delete();
         $this->saveBiodataFields($id, $request);

@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+    <link rel="icon" type="image/jpeg" href="{{ asset('assets/imagesicon.jpg') }}">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Master Layanan</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
 <style>
     *, *::before, *::after { box-sizing: border-box; }
     body {
@@ -103,58 +105,73 @@
         display: inline-flex; align-items: center; gap: 6px;
         padding: 8px 18px; background: #005654; color: #fff;
         font-size: 13.5px; font-weight: 600; border-radius: 10px;
-        border: none; cursor: pointer; transition: background .2s, transform .15s;
+        border: none; cursor: pointer; transition: background .2s;
     }
-    .btn-search:hover { background: #007a77; transform: translateY(-1px); }
+    .btn-search:hover { background: #007a77; }
     .btn-reset {
         display: inline-flex; align-items: center; gap: 6px;
         padding: 8px 14px; border-radius: 10px; font-size: 13.5px; font-weight: 500;
-        border: 1.5px solid #d0d0d0; color: #666; background: #fff; text-decoration: none; transition: all .2s;
+        border: 1.5px solid #d0d0d0; color: #666; background: #fff; text-decoration: none;
     }
-    .btn-reset:hover { border-color: #005654; color: #005654; background: #f0f9f8; }
+    .btn-reset:hover { border-color: #005654; color: #005654; }
     .btn-tambah {
         display: inline-flex; align-items: center; gap: 6px;
         padding: 8px 18px; background: #005654; color: #fff;
         font-size: 13.5px; font-weight: 600; border-radius: 10px;
-        text-decoration: none; transition: background .2s, transform .15s;
+        text-decoration: none; transition: background .2s;
     }
-    .btn-tambah:hover { background: #007a77; color: #fff; transform: translateY(-1px); }
+    .btn-tambah:hover { background: #007a77; color: #fff; }
 
-    .table-card { background: #fff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,.06); }
-    .table-card .table-responsive { overflow-x: auto; overflow-y: auto; max-height: 60vh; border-radius: 16px; }
-    .table thead th { position: sticky; top: 0; z-index: 2; }
-    .table { margin-bottom: 0; }
-    .table thead th {
-        background: #005654; color: #fff; font-size: 11.5px; font-weight: 600;
-        letter-spacing: .4px; text-transform: uppercase; padding: 13px 14px; border: none; white-space: nowrap;
+    /* ── LIST TABLE ── */
+    .layanan-table {
+        width: 100%; border-collapse: collapse;
+        background: #fff; border-radius: 14px;
+        overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,.06);
     }
-    .table tbody td {
-        padding: 12px 14px; vertical-align: middle;
-        border-bottom: 1px solid #f3f3f3; font-size: 13px; color: #2d2d2d;
+    .layanan-table thead tr { background: #005654; color: #fff; font-size: 12.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; }
+    .layanan-table thead th { padding: 12px 16px; white-space: nowrap; }
+    .layanan-table tbody tr { border-bottom: 1px solid #f0f7f6; transition: background .12s; font-size: 13.5px; }
+    .layanan-table tbody tr:last-child { border-bottom: none; }
+    .layanan-table tbody tr:hover { background: #f4fbfa; }
+    .layanan-table tbody tr.nonaktif { opacity: .55; }
+    .layanan-table td { padding: 11px 16px; vertical-align: middle; }
+    .layanan-table td.no { color: #aaa; font-size: 12px; width: 40px; text-align: center; }
+    .layanan-name { font-weight: 600; color: #1a2e2d; }
+    .layanan-desc { font-size: 12px; color: #6b8f8a; margin-top: 2px; }
+    .badge-kat { display:inline-block; padding:2px 9px; border-radius:999px; font-size:11px; font-weight:600; color:#fff; }
+    .badge-aktif { display:inline-block; padding:2px 9px; border-radius:999px; font-size:11px; font-weight:600; background:#d1f5ee; color:#0a6b52; }
+    .badge-nonaktif { display:inline-block; padding:2px 9px; border-radius:999px; font-size:11px; font-weight:600; background:#ebebeb; color:#6c757d; }
+    .btn-edit {
+        display:inline-flex; align-items:center; gap:4px;
+        padding:5px 12px; border-radius:8px; font-size:12.5px; font-weight:600;
+        background:#fff8e1; color:#b8860b; border:none; cursor:pointer;
+        text-decoration:none; transition:background .15s;
     }
-    .table tbody tr:last-child td { border-bottom: none; }
-    .table tbody tr { transition: background .15s; }
-    .table tbody tr:hover { background: #f7fdfc; }
-
-    .td-nama { font-weight: 600; color: #1a1a2e; }
-    .td-muted { color: #888; font-size: 12.5px; }
-
-    .badge-aktif { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 11.5px; font-weight: 600; background: #d1f5ee; color: #0a6b52; }
-    .badge-nonaktif { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 11.5px; font-weight: 600; background: #ebebeb; color: #6c757d; }
-
-    .btn-icon {
-        display: inline-flex; align-items: center; justify-content: center;
-        width: 32px; height: 32px; border-radius: 8px; border: none; background: transparent;
-        transition: background .2s, color .2s, transform .15s; font-size: 15px; text-decoration: none; cursor: pointer;
+    .btn-edit:hover { background:#fff3cd; color:#856404; }
+    .btn-del {
+        display:inline-flex; align-items:center; gap:4px;
+        padding:5px 10px; border-radius:8px; font-size:12.5px; font-weight:600;
+        background:#fde8e8; color:#c0392b; border:none; cursor:pointer; transition:background .15s;
     }
-    .btn-icon-edit { color: #b8860b; }
-    .btn-icon-edit:hover { background: #fff3cd; color: #856404; transform: translateY(-1px); }
-    .btn-icon-delete { color: #c0392b; }
-    .btn-icon-delete:hover { background: #fde8e8; color: #922b21; transform: translateY(-1px); }
-
+    .btn-del:hover { background:#fcc; color:#922b21; }
     .empty-state { padding: 60px 20px; text-align: center; color: #aaa; }
     .empty-state i { font-size: 48px; margin-bottom: 12px; display: block; color: #c8e6e5; }
     .empty-state p { font-size: 14px; margin: 0; }
+    .d-contents { display: contents; }
+
+    /* Select2 filter bar */
+    .filter-bar .select2-container--default .select2-selection--single {
+        border-radius: 10px; border: 1.5px solid #d0e8e7;
+        height: 38px; padding: 4px 10px; font-size: 13.5px;
+    }
+    .filter-bar .select2-container--default .select2-selection--single .select2-selection__rendered { line-height: 28px; color: #333; padding-left: 0; }
+    .filter-bar .select2-container--default .select2-selection--single .select2-selection__arrow { height: 36px; }
+    .filter-bar .select2-container--default.select2-container--focus .select2-selection--single,
+    .filter-bar .select2-container--default.select2-container--open .select2-selection--single { border-color: #005654; box-shadow: 0 0 0 3px rgba(0,86,84,.1); outline: none; }
+    .filter-bar .select2-dropdown { border: 1.5px solid #d0e8e7; border-radius: 10px; font-size: 13.5px; }
+    .filter-bar .select2-container--default .select2-search--dropdown .select2-search__field { border: 1.5px solid #d0e8e7; border-radius: 8px; padding: 5px 10px; font-size: 13px; }
+    .filter-bar .select2-container--default .select2-results__option--highlighted[aria-selected] { background: #005654; }
+    .filter-bar .select2-container--default .select2-selection--single .select2-selection__clear { margin-right: 20px; color: #aaa; font-size: 16px; }
 </style>
 </head>
 <body>
@@ -173,6 +190,7 @@
         <a href="{{ route('permintaan.index') }}" class="sidebar-link">
             <i class="bi bi-list-ul"></i> Permintaan
         </a>
+        @if(auth()->user()->role === 'admin')
         <div class="sidebar-dropdown">
             <button class="sidebar-link sidebar-dropdown-toggle w-100" onclick="toggleSidebarDropdown(this)">
                 <i class="bi bi-gear-fill"></i>
@@ -188,6 +206,7 @@
                 </a>
             </div>
         </div>
+        @endif
         @if(auth()->user()->role === 'admin')
         <div class="sidebar-dropdown">
             <button class="sidebar-link sidebar-dropdown-toggle w-100" onclick="toggleSidebarDropdown(this)">
@@ -207,9 +226,6 @@
                 </a>
             </div>
         </div>
-        <a href="{{ route('master.doctor.index') }}" class="sidebar-link">
-            <i class="bi bi-hospital-fill"></i> Data Dokter
-        </a>
         @endif
     </nav>
     <div class="sidebar-footer">
@@ -252,9 +268,17 @@
                     <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari layanan...">
                 </div>
                 <button type="submit" class="btn-search"><i class="bi bi-search"></i> Cari</button>
-                @if(request('search'))
+                @if(request('search') || request('kategori'))
                     <a href="{{ route('master.layanan.index') }}" class="btn-reset"><i class="bi bi-x-circle"></i> Reset</a>
                 @endif
+                <select name="kategori" id="filterKategori" class="form-select" style="width:180px;height:38px;border-radius:10px;border:1.5px solid #d0e8e7;font-size:13px;">
+                    <option value="">Semua Kategori</option>
+                    @foreach($kategoris as $kat)
+                        <option value="{{ $kat->id }}" {{ request('kategori') == $kat->id ? 'selected' : '' }}>
+                            {{ $kat->nama }}
+                        </option>
+                    @endforeach
+                </select>
                 <div class="ms-auto">
                     <a href="{{ route('master.layanan.create') }}" class="btn-tambah">
                         <i class="bi bi-plus-lg"></i> Tambah Layanan
@@ -263,79 +287,92 @@
             </form>
         </div>
 
-        <div class="table-card">
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th style="width:50px;">No</th>
-                            <th>Nama Layanan</th>
-                            <th>Kategori</th>
-                            <th>Deskripsi</th>
-                            <th class="text-center">Status</th>
-                            <th class="text-center">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    @forelse($layanans as $index => $layanan)
-                        <tr>
-                            <td class="td-muted">{{ $index + 1 }}</td>
-                            <td class="td-nama">{{ $layanan->nama_layanan }}</td>
-                            <td>
-                                @if($layanan->kategori)
-                                    <span style="display:inline-block;padding:3px 10px;border-radius:999px;font-size:11.5px;font-weight:600;color:#fff;background:{{ $layanan->kategori->warna }}">
-                                        {{ $layanan->kategori->nama }}
-                                    </span>
-                                @else
-                                    <span class="td-muted">-</span>
-                                @endif
-                            </td>
-                            <td class="td-muted">{{ $layanan->deskripsi ?? '-' }}</td>
-                            <td class="text-center">
-                                @if($layanan->is_active)
-                                    <span class="badge-aktif">Aktif</span>
-                                @else
-                                    <span class="badge-nonaktif">Nonaktif</span>
-                                @endif
-                            </td>
-                            <td class="text-center">
-                                <div class="d-flex justify-content-center gap-1">
-                                    <a href="{{ route('master.layanan.edit', $layanan->id) }}"
-                                       class="btn-icon btn-icon-edit" title="Edit">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-                                    <form action="{{ route('master.layanan.destroy', $layanan->id) }}"
-                                          method="POST" class="d-inline"
-                                          onsubmit="return confirm('Yakin ingin menghapus layanan ini?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn-icon btn-icon-delete" title="Hapus">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="6">
-                                <div class="empty-state">
-                                    <i class="bi bi-inbox"></i>
-                                    <p>Belum ada data layanan.</p>
-                                </div>
-                            </td>
-                        </tr>
-                    @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
+        <table class="layanan-table">
+            <thead>
+                <tr>
+                    <th class="no">#</th>
+                    <th>Nama Layanan</th>
+                    <th>Kategori</th>
+                    <th>Status</th>
+                    <th style="width:130px;">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+            @forelse($layanans as $i => $layanan)
+                <tr class="{{ $layanan->is_active ? '' : 'nonaktif' }}">
+                    <td class="no">{{ $i + 1 }}</td>
+                    <td>
+                        <div class="layanan-name">{{ $layanan->nama_layanan }}</div>
+                        @if($layanan->deskripsi)
+                            <div class="layanan-desc">{{ $layanan->deskripsi }}</div>
+                        @endif
+                    </td>
+                    <td>
+                        @if($layanan->kategori)
+                            <span class="badge-kat" style="background:{{ $layanan->kategori->warna }}">
+                                {{ $layanan->kategori->nama }}
+                            </span>
+                        @else
+                            <span style="color:#bbb; font-size:12px;">—</span>
+                        @endif
+                    </td>
+                    <td>
+                        @if($layanan->is_active)
+                            <span class="badge-aktif">Aktif</span>
+                        @else
+                            <span class="badge-nonaktif">Nonaktif</span>
+                        @endif
+                    </td>
+                    <td>
+                        <div style="display:flex; gap:6px;">
+                            <a href="{{ route('master.layanan.edit', $layanan->id) }}" class="btn-edit">
+                                <i class="bi bi-pencil"></i> Edit
+                            </a>
+                            <form action="{{ route('master.layanan.destroy', $layanan->id) }}"
+                                  method="POST" class="d-contents"
+                                  onsubmit="return confirm('Yakin hapus layanan ini?')">
+                                @csrf @method('DELETE')
+                                <button type="submit" class="btn-del">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="5">
+                        <div class="empty-state">
+                            <i class="bi bi-inbox"></i>
+                            <p>Belum ada data layanan.</p>
+                        </div>
+                    </td>
+                </tr>
+            @endforelse
+            </tbody>
+        </table>
 
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
+    $(document).ready(function() {
+        $('#filterKategori').select2({
+            placeholder: 'Semua Kategori',
+            allowClear: true,
+            width: '200px',
+            language: {
+                noResults: () => 'Kategori tidak ditemukan',
+                searching: () => 'Mencari...'
+            }
+        }).on('select2:select select2:clear', function() {
+            this.closest('form').submit();
+        });
+    });
+
     function toggleSidebarDropdown(btn) {
         btn.closest('.sidebar-dropdown').classList.toggle('open');
     }

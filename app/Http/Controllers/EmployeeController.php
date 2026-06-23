@@ -7,16 +7,8 @@ use Illuminate\Http\Request;
 
 class EmployeeController extends Controller
 {
-    private function authorizeAdmin()
-    {
-        if (auth()->user()->role !== 'admin') {
-            abort(403, 'Akses ditolak.');
-        }
-    }
-
     public function store(Request $request)
     {
-        $this->authorizeAdmin();
         $request->validate([
             'nip'              => 'required|string|max:50|unique:employees,nip',
             'nama_karyawan'    => 'required|string|max:255',
@@ -34,7 +26,6 @@ class EmployeeController extends Controller
 
     public function update(Request $request, $id)
     {
-        $this->authorizeAdmin();
         $employee = Employee::findOrFail($id);
 
         $request->validate([
@@ -54,7 +45,6 @@ class EmployeeController extends Controller
 
     public function destroy($id)
     {
-        $this->authorizeAdmin();
         Employee::findOrFail($id)->delete();
 
         return redirect()->route('master.user.index', ['tab' => 'karyawan'])

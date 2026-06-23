@@ -6,7 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class Kategori extends Model
 {
-    protected $fillable = ['nama', 'deskripsi', 'role', 'warna', 'is_active'];
+    protected $fillable = ['nama', 'deskripsi', 'role', 'roles', 'warna', 'is_active'];
+
+    protected $casts = [
+        'roles' => 'array',
+    ];
 
     public function layanans()
     {

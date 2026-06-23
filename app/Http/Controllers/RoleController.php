@@ -7,27 +7,24 @@ use Illuminate\Http\Request;
 
 class RoleController extends Controller
 {
-    private function authorizeAdmin()
-    {
-        if (auth()->user()->role !== 'admin') {
-            abort(403, 'Akses ditolak.');
-        }
-    }
-
     public function store(Request $request)
     {
-        $this->authorizeAdmin();
-
         $request->validate([
             'name'        => 'required|string|max:50|unique:roles,name|regex:/^[a-z0-9_]+$/',
             'label'       => 'required|string|max:100',
             'description' => 'nullable|string|max:255',
             'color'       => 'required|string|max:7',
+            'redirect_to' => 'required|string|max:100',
+            'allowed_groups' => 'nullable|array',
+            'allowed_groups.*' => 'string',
         ], [
             'name.regex' => 'Nama role hanya boleh huruf kecil, angka, dan underscore.',
         ]);
 
-        Role::create($request->only('name', 'label', 'description', 'color'));
+        $data = $request->only('name', 'label', 'description', 'color', 'redirect_to');
+        $data['allowed_groups'] = $request->input('allowed_groups', []);
+
+        Role::create($data);
 
         return redirect()->route('master.user.index', ['tab' => 'role'])
             ->with('success', 'Role berhasil ditambahkan.');
@@ -35,15 +32,19 @@ class RoleController extends Controller
 
     public function update(Request $request, Role $role)
     {
-        $this->authorizeAdmin();
-
         $request->validate([
             'label'       => 'required|string|max:100',
             'description' => 'nullable|string|max:255',
             'color'       => 'required|string|max:7',
+            'redirect_to' => 'required|string|max:100',
+            'allowed_groups' => 'nullable|array',
+            'allowed_groups.*' => 'string',
         ]);
 
-        $role->update($request->only('label', 'description', 'color'));
+        $data = $request->only('label', 'description', 'color', 'redirect_to');
+        $data['allowed_groups'] = $request->input('allowed_groups', []);
+
+        $role->update($data);
 
         return redirect()->route('master.user.index', ['tab' => 'role'])
             ->with('success', 'Role berhasil diperbarui.');
@@ -51,8 +52,6 @@ class RoleController extends Controller
 
     public function destroy(Role $role)
     {
-        $this->authorizeAdmin();
-
         if ($role->users()->count() > 0) {
             return redirect()->route('master.user.index', ['tab' => 'role'])
                 ->with('error', "Role '{$role->label}' tidak dapat dihapus karena masih digunakan oleh {$role->users()->count()} akun.");

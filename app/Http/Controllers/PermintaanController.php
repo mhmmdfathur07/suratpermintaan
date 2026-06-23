@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Permintaan;
+use App\Models\Layanan;
+use App\Models\Kategori;
 use Illuminate\Http\Request;
 
 class PermintaanController extends Controller
@@ -16,9 +18,24 @@ class PermintaanController extends Controller
         $layanan   = $request->input('layanan');
         $tanggal   = $request->input('tanggal');
         $tglDibuat = $request->input('tgl_dibuat');
+        $userRole  = auth()->user()->role;
+
+        // Cari kategori yang roles-nya mengandung role user ini (JSON array)
+        $kategoriUser = \App\Models\Kategori::where(function ($q) use ($userRole) {
+            $q->whereJsonContains('roles', $userRole)
+              ->orWhere('role', $userRole);
+        })->get();
+        $kategoriIds = $kategoriUser->pluck('id');
 
         $query = Permintaan::query()->leftJoin('users', 'users.id', '=', 'permintaans.user_id')
                     ->select('permintaans.*');
+
+        // Admin lihat semua. Role lain hanya lihat permintaan dari layanan di kategorinya.
+        if ($userRole !== 'admin') {
+            $layananDiKategori = \App\Models\Layanan::whereIn('kategori_id', $kategoriIds)
+                ->pluck('nama_layanan');
+            $query->whereIn('permintaans.layanan', $layananDiKategori);
+        }
 
         if (!empty($search)) {
             $searchLower = strtolower($search);
@@ -46,12 +63,15 @@ class PermintaanController extends Controller
             $query->whereDate('tgl_dibuat', $tglDibuat);
         }
 
-        $data = $query->with('user')->orderBy('created_at','desc')->get();
-        
-        // Ambil semua layanan untuk filter
-        $layanans = \App\Models\Layanan::all();
+        $data = $query->with('user')->orderBy('created_at','desc')->paginate(20)->withQueryString();
 
-        // Map nama_layanan => template_path untuk cek di view
+        // Filter dropdown layanan disesuaikan dengan kategori user
+        if ($userRole !== 'admin') {
+            $layanans = \App\Models\Layanan::whereIn('kategori_id', $kategoriIds)->orderBy('nama_layanan')->get();
+        } else {
+            $layanans = \App\Models\Layanan::orderBy('nama_layanan')->get();
+        }
+
         $layananTemplateMap = $layanans->pluck('template_path', 'nama_layanan')->toArray();
 
         return view('permintaan.index', compact('data', 'layanans', 'layananTemplateMap'));
@@ -73,6 +93,10 @@ class PermintaanController extends Controller
     {
         $data = Permintaan::findOrFail($id);
 
+        if ($data->is_lain_lain) {
+            abort(403, 'Permintaan ini tidak memiliki template surat.');
+        }
+
         $layanan = \App\Models\Layanan::with(['biodataFields', 'isiTemplate'])
             ->where('nama_layanan', $data->layanan)
             ->first();
@@ -90,7 +114,9 @@ class PermintaanController extends Controller
     public function edit($id)
     {
         $data    = Permintaan::findOrFail($id);
-        $doctors = \App\Models\Doctor::where('is_active', true)->orderBy('nama_dokter')->get();
+        $doctors = \App\Models\Employee::where('posisi_pekerjaan', 'like', 'DOKTER%')
+                    ->orderBy('nama_karyawan')
+                    ->get();
 
         // Ambil placeholder dari isi surat layanan ini
         $isiFields = collect();
@@ -127,7 +153,7 @@ class PermintaanController extends Controller
             $allLayananFields = collect(array_unique($m[1]));
         }
 
-        return view('permintaan.edit', compact('data', 'doctors', 'isiFields', 'allLayananFields'));
+        return view('permintaan.edit', compact('data', 'doctors', 'isiFields', 'allLayananFields', 'layananConfig'));
     }
 
     // =========================
@@ -148,7 +174,6 @@ class PermintaanController extends Controller
         $updateData = [
             'nm_penerima'      => $request->nm_penerima,
             'nm_petugas_rm'    => auth()->user()->name,
-            'nama_dokter'      => $request->nama_dokter,
             'nama_persetujuan' => $request->nama_persetujuan,
         ];
 

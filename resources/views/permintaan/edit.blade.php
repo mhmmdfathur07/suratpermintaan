@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+    <link rel="icon" type="image/jpeg" href="{{ asset('assets/imagesicon.jpg') }}">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Edit Permintaan</title>
@@ -127,14 +128,27 @@
             <div class="sub">Sistem Informasi</div>
         </div>
     </div>
-    <nav class="sidebar-nav">
         <div class="sidebar-label">Menu</div>
         <a href="{{ route('permintaan.index') }}" class="sidebar-link active-page">
             <i class="bi bi-list-ul"></i> Permintaan
         </a>
-        <a href="{{ route('master.layanan.index') }}" class="sidebar-link">
-            <i class="bi bi-gear-fill"></i> Layanan
-        </a>
+        @if(auth()->user()->role === 'admin')
+        <div class="sidebar-dropdown">
+            <button class="sidebar-link sidebar-dropdown-toggle w-100" onclick="toggleSidebarDropdown(this)">
+                <i class="bi bi-gear-fill"></i>
+                <span>Master</span>
+                <i class="bi bi-chevron-down sidebar-chevron ms-auto"></i>
+            </button>
+            <div class="sidebar-submenu">
+                <a href="{{ route('master.kategori.index') }}" class="sidebar-sublink">
+                    <i class="bi bi-tags-fill"></i> Kategori
+                </a>
+                <a href="{{ route('master.layanan.index') }}" class="sidebar-sublink">
+                    <i class="bi bi-file-earmark-text-fill"></i> Layanan
+                </a>
+            </div>
+        </div>
+        @endif
         @if(auth()->user()->role === 'admin')
         <div class="sidebar-dropdown">
             <button class="sidebar-link sidebar-dropdown-toggle w-100" onclick="toggleSidebarDropdown(this)">
@@ -149,14 +163,14 @@
                 <a href="{{ route('master.user.index') }}?tab=role" class="sidebar-sublink">
                     <i class="bi bi-shield-fill"></i> Manajemen Role
                 </a>
+                <a href="{{ route('master.user.index') }}?tab=role" class="sidebar-sublink">
+                    <i class="bi bi-person-badge-fill"></i> Data Karyawan
+                </a>
                 <a href="{{ route('master.user.index') }}?tab=karyawan" class="sidebar-sublink">
                     <i class="bi bi-person-badge-fill"></i> Data Karyawan
                 </a>
             </div>
         </div>
-        <a href="{{ route('master.doctor.index') }}" class="sidebar-link">
-            <i class="bi bi-hospital-fill"></i> Data Dokter
-        </a>
         @endif
     </nav>
     <div class="sidebar-footer">
@@ -271,9 +285,9 @@
                             <select name="nama_dokter" id="select-dokter-isi" form="form-kiri" class="form-select">
                                 <option value="">-- Pilih Dokter --</option>
                                 @foreach($doctors as $dokter)
-                                    <option value="{{ $dokter->nama_dokter }}"
-                                        {{ old('nama_dokter', $data->nama_dokter) === $dokter->nama_dokter ? 'selected' : '' }}>
-                                        {{ $dokter->nama_dokter }}{{ $dokter->spesialisasi ? ' - '.$dokter->spesialisasi : '' }}
+                                    <option value="{{ $dokter->nama_karyawan }}"
+                                        {{ old('nama_dokter', $data->nama_dokter) === $dokter->nama_karyawan ? 'selected' : '' }}>
+                                        {{ $dokter->nama_karyawan }} - {{ $dokter->posisi_pekerjaan }}
                                     </option>
                                 @endforeach
                             </select>
@@ -303,19 +317,6 @@
             <div class="section-title">Administrasi</div>
 
                 <div class="mb-3">
-                    <label class="form-label">Nama Dokter</label>
-                    <select name="nama_dokter" id="select-dokter" form="form-kiri" class="form-select">
-                        <option value="">-- Pilih Dokter --</option>
-                        @foreach($doctors as $dokter)
-                            <option value="{{ $dokter->nama_dokter }}"
-                                {{ old('nama_dokter', $data->nama_dokter) === $dokter->nama_dokter ? 'selected' : '' }}>
-                                {{ $dokter->nama_dokter }}{{ $dokter->spesialisasi ? ' - ' . $dokter->spesialisasi : '' }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div class="mb-3">
                     <label class="form-label">Nama Penerima</label>
                     <input type="text" name="nm_penerima" form="form-kiri" value="{{ old('nm_penerima', $data->nm_penerima) }}" class="form-control">
                 </div>
@@ -327,10 +328,11 @@
                 </div>
                 @endif
 
-                @if($allLayananFields->contains('nama_persetujuan') && !$isiFields->contains('nama_persetujuan'))
+                @if($layananConfig?->ttd_kanan_label)
                 <div class="mb-3">
                     <label class="form-label">Nama Persetujuan</label>
-                    <input type="text" name="nama_persetujuan" form="form-kiri" value="{{ old('nama_persetujuan', $data->nama_persetujuan) }}" class="form-control">
+                    <small class="text-muted d-block mb-1" style="font-size:11px;">Untuk TTD: {{ $layananConfig->ttd_kanan_label }}</small>
+                    <input type="text" name="nama_persetujuan" form="form-kiri" value="{{ old('nama_persetujuan', $data->nama_persetujuan) }}" class="form-control" placeholder="Nama yang menandatangani">
                 </div>
                 @endif
 

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+    <link rel="icon" type="image/jpeg" href="{{ asset('assets/imagesicon.jpg') }}">
 <meta charset="UTF-8">
 <title>{{ $layanan->judul_surat ?? $layanan->nama_layanan }}</title>
 <style>
@@ -104,7 +105,7 @@
                 {{ $layanan->ttd_kiri_label }}<br>
                 @if($layanan->ttd_kiri_label_en)<span class="italic">{{ $layanan->ttd_kiri_label_en }}</span>@endif
                 <br><br><br><br>
-                <u>{{ $data->nama_dokter ?? 'dr. .......................' }}</u>
+                <u>{{ $data->nama_dokter ?? '.......................' }}</u>
             @endif
         </td>
         <td width="50%" class="center">
@@ -115,7 +116,12 @@
                 <span style="display:inline-block; max-width:180px; font-size:10pt;">{{ $layanan->ttd_kanan_label }}</span><br>
                 @if($layanan->ttd_kanan_label_en)<span class="italic" style="display:inline-block; max-width:180px; font-size:10pt;">{{ $layanan->ttd_kanan_label_en }}</span>@endif
                 <br><br><br><br>
-                <u>{{ $data->nama_persetujuan ?? '...................' }}</u>
+                @php
+                    $ttdKanan = $layanan->ttd_kanan_sumber === 'dokter'
+                        ? ($data->nama_dokter ?? '.......................')
+                        : ($data->nama_persetujuan ?? '...................');
+                @endphp
+                <u>{{ $ttdKanan }}</u>
             @endif
         </td>
     </tr>

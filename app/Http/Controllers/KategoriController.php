@@ -33,15 +33,16 @@ class KategoriController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nama'   => 'required|string|max:255|unique:kategoris,nama',
-            'role'   => 'nullable|string|exists:roles,name',
-            'warna'  => 'nullable|string|max:20',
+            'nama'    => 'required|string|max:255|unique:kategoris,nama',
+            'roles'   => 'nullable|array',
+            'roles.*' => 'string|exists:roles,name',
+            'warna'   => 'nullable|string|max:20',
         ]);
 
         Kategori::create([
             'nama'      => $request->nama,
             'deskripsi' => $request->deskripsi,
-            'role'      => $request->role ?: null,
+            'roles'     => $request->roles ?? [],
             'warna'     => $request->warna ?: '#005654',
             'is_active' => $request->has('is_active') ? 1 : 0,
         ]);
@@ -60,16 +61,17 @@ class KategoriController extends Controller
     public function update(Request $request, string $id)
     {
         $request->validate([
-            'nama'  => 'required|string|max:255|unique:kategoris,nama,' . $id,
-            'role'  => 'nullable|string|exists:roles,name',
-            'warna' => 'nullable|string|max:20',
+            'nama'    => 'required|string|max:255|unique:kategoris,nama,' . $id,
+            'roles'   => 'nullable|array',
+            'roles.*' => 'string|exists:roles,name',
+            'warna'   => 'nullable|string|max:20',
         ]);
 
         $kategori = Kategori::findOrFail($id);
         $kategori->update([
             'nama'      => $request->nama,
             'deskripsi' => $request->deskripsi,
-            'role'      => $request->role ?: null,
+            'roles'     => $request->roles ?? [],
             'warna'     => $request->warna ?: '#005654',
             'is_active' => $request->has('is_active') ? 1 : 0,
         ]);

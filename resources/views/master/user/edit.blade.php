@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+    <link rel="icon" type="image/jpeg" href="{{ asset('assets/imagesicon.jpg') }}">
     <meta charset="UTF-8">
     <title>Edit Akun</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -73,9 +74,23 @@
         <a href="{{ route('permintaan.index') }}" class="sidebar-link">
             <i class="bi bi-list-ul"></i> Permintaan
         </a>
-        <a href="{{ route('master.layanan.index') }}" class="sidebar-link">
-            <i class="bi bi-gear-fill"></i> Layanan
-        </a>
+        @if(auth()->user()->role === 'admin')
+        <div class="sidebar-dropdown">
+            <button class="sidebar-link sidebar-dropdown-toggle w-100" onclick="toggleSidebarDropdown(this)">
+                <i class="bi bi-gear-fill"></i>
+                <span>Master</span>
+                <i class="bi bi-chevron-down sidebar-chevron ms-auto"></i>
+            </button>
+            <div class="sidebar-submenu">
+                <a href="{{ route('master.kategori.index') }}" class="sidebar-sublink">
+                    <i class="bi bi-tags-fill"></i> Kategori
+                </a>
+                <a href="{{ route('master.layanan.index') }}" class="sidebar-sublink">
+                    <i class="bi bi-file-earmark-text-fill"></i> Layanan
+                </a>
+            </div>
+        </div>
+        @endif
         @if(auth()->user()->role === 'admin')
         <div class="sidebar-dropdown open">
             <button class="sidebar-link sidebar-dropdown-toggle active-page w-100" onclick="toggleSidebarDropdown(this)">
@@ -95,9 +110,6 @@
                 </a>
             </div>
         </div>
-        <a href="{{ route('master.doctor.index') }}" class="sidebar-link">
-            <i class="bi bi-hospital-fill"></i> Data Dokter
-        </a>
         @endif
     </nav>
     <div class="sidebar-footer">

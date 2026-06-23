@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+    <link rel="icon" type="image/jpeg" href="{{ asset('assets/imagesicon.jpg') }}">
     <meta charset="UTF-8">
     <title>Tambah Akun</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -115,9 +116,23 @@
         <a href="{{ route('permintaan.index') }}" class="sidebar-link">
             <i class="bi bi-list-ul"></i> Permintaan
         </a>
-        <a href="{{ route('master.layanan.index') }}" class="sidebar-link">
-            <i class="bi bi-gear-fill"></i> Layanan
-        </a>
+        @if(auth()->user()->role === 'admin')
+        <div class="sidebar-dropdown">
+            <button class="sidebar-link sidebar-dropdown-toggle w-100" onclick="toggleSidebarDropdown(this)">
+                <i class="bi bi-gear-fill"></i>
+                <span>Master</span>
+                <i class="bi bi-chevron-down sidebar-chevron ms-auto"></i>
+            </button>
+            <div class="sidebar-submenu">
+                <a href="{{ route('master.kategori.index') }}" class="sidebar-sublink">
+                    <i class="bi bi-tags-fill"></i> Kategori
+                </a>
+                <a href="{{ route('master.layanan.index') }}" class="sidebar-sublink">
+                    <i class="bi bi-file-earmark-text-fill"></i> Layanan
+                </a>
+            </div>
+        </div>
+        @endif
         @if(auth()->user()->role === 'admin')
         <div class="sidebar-dropdown open">
             <button class="sidebar-link sidebar-dropdown-toggle active-page w-100" onclick="toggleSidebarDropdown(this)">
@@ -137,9 +152,6 @@
                 </a>
             </div>
         </div>
-        <a href="{{ route('master.doctor.index') }}" class="sidebar-link">
-            <i class="bi bi-hospital-fill"></i> Data Dokter
-        </a>
         @endif
     </nav>
     <div class="sidebar-footer">
@@ -190,6 +202,8 @@
                 @foreach($employees as $emp)
                     <option value="{{ $emp->id }}"
                         data-nama="{{ $emp->nama_karyawan }}"
+                        data-jabatan="{{ $emp->jabatan }}"
+                        data-unit="{{ $emp->unit }}"
                         {{ old('employee_id') == $emp->id ? 'selected' : '' }}>
                         {{ $emp->nama_karyawan }} &mdash; {{ $emp->posisi_pekerjaan ?? $emp->jabatan ?? '-' }}
                     </option>
@@ -202,7 +216,7 @@
         <div id="account-fields">
             <div class="info-badge">
                 <i class="bi bi-info-circle me-1"></i>
-                Username dibuat otomatis dari nama depan dan nama belakang karyawan.
+                Username dibuat otomatis dari nama depan dan nama belakang karyawan. Role ditentukan otomatis dari jabatan &amp; unit.
             </div>
 
             <div class="row g-3 mb-3">
@@ -232,26 +246,13 @@
                        value="{{ old('name') }}" required>
             </div>
 
-            <div class="mb-3">
-                <label class="form-label">Role</label>
-                <select name="role" class="form-select" required>
-                    <option value="">-- Pilih Role --</option>
-                    @foreach($roles as $role)
-                        <option value="{{ $role->name }}" {{ old('role') == $role->name ? 'selected' : '' }}>
-                            {{ $role->label }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Password</label>
-                <input type="password" name="password" class="form-control" required>
-            </div>
-
             <div class="mb-4">
-                <label class="form-label">Konfirmasi Password</label>
-                <input type="password" name="password_confirmation" class="form-control" required>
+                <label class="form-label">Role (otomatis)</label>
+                <div id="role_preview" style="background:#f4fbfa; border:1.5px solid #d0e8e7; border-radius:10px; padding:10px 14px; font-size:13.5px; color:#005654; font-weight:600;">
+                    <i class="bi bi-shield-fill me-1" style="color:#81BD41;"></i>
+                    <span id="role_label_text">Pilih karyawan terlebih dahulu</span>
+                </div>
+                <div class="form-text">Jabatan di bawah koordinator → User. Koordinator ke atas → role sesuai unit.</div>
             </div>
 
             <div class="d-flex gap-2">
@@ -282,15 +283,18 @@
         });
 
         $('#employee_select').on('change', function () {
-            const selected = this.options[this.selectedIndex];
+            const selectedOption = $('#employee_select').find(':selected');
             if (this.value) {
-                const namaLengkap = selected.getAttribute('data-nama') || '';
+                const namaLengkap = selectedOption.data('nama') || '';
+                const jabatan     = selectedOption.data('jabatan') || '';
+                const unit        = selectedOption.data('unit') || '';
                 const { depan, belakang } = pisahkanNama(namaLengkap);
 
                 namaDepanInput.value    = depan;
                 namaBelakangInput.value = belakang;
                 nameFullInput.value     = namaLengkap;
                 generateUsername();
+                updateRolePreview(jabatan, unit);
 
                 accountFields.style.display = '';
             } else {
@@ -305,6 +309,21 @@
     const namaBelakangInput = document.getElementById('nama_belakang');
     const usernamePreview   = document.getElementById('username_preview');
     const nameFullInput     = document.getElementById('name_full');
+
+    // Map role unit dari server
+    const unitRoleMap = @json($roles->pluck('label', 'name'));
+    const JABATAN_BAWAH = ['STAFF', 'PENANGGUNG JAWAB', 'DOKTER SPESIALIS'];
+
+    function updateRolePreview(jabatan, unit) {
+        const el = document.getElementById('role_label_text');
+        if (!el) return;
+        if (JABATAN_BAWAH.includes(jabatan.toUpperCase().trim())) {
+            el.textContent = unitRoleMap['user'] || 'User';
+            return;
+        }
+        const slug = 'unit_' + unit.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+        el.textContent = unitRoleMap[slug] || ('Unit ' + unit);
+    }
 
     // Gelar depan (prefix) — kata yang diakhiri titik dan merupakan gelar
     const GELAR_DEPAN_LIST = ['dr', 'drg', 'drs', 'dra', 'prof', 'ir', 'ns', 'apt', 'ners', 'kh', 'hj', 'h'];
@@ -335,30 +354,30 @@
     }
 
     function pisahkanNama(namaLengkap) {
-        // Pisahkan berdasarkan koma — semua setelah koma pertama adalah gelar
-        const idxKoma = namaLengkap.indexOf(',');
+        // Buang semua setelah koma pertama (gelar)
+        const tanpaGelar = namaLengkap.indexOf(',') !== -1
+            ? namaLengkap.substring(0, namaLengkap.indexOf(',')).trim()
+            : namaLengkap.trim();
 
-        // Split per spasi
-        const kata = namaBagian.split(/\s+/);
+        // Split per spasi, ambil kata-kata bersih
+        const kata = tanpaGelar.split(/\s+/).filter(k => k.length > 0);
 
-        // Buang gelar depan dari awal
+        // Buang gelar depan
         let i = 0;
         while (i < kata.length && isGelarDepan(kata[i])) i++;
-
-        // Ambil sisa kata, buang gelar belakang dari akhir (double-check)
         const kataNama = kata.slice(i);
-        while (kataNama.length > 1 && isGelarBelakang(kataNama[kataNama.length - 1])) {
-            kataNama.pop();
-        }
+
+        console.log('tanpaGelar:', tanpaGelar, '| kataNama:', kataNama);
 
         const depan    = kataNama[0] || '';
-        const belakang = kataNama.slice(1).join(' ');
+        const belakang = kataNama[1] || '';   // hanya kata kedua
         return { depan, belakang };
     }
 
     function generateUsername() {
-        const depan    = namaDepanInput.value.trim().toLowerCase().replace(/\s+/g, '');
-        const belakang = namaBelakangInput.value.trim().toLowerCase().replace(/\s+/g, '');
+        // Ambil hanya kata pertama dari nama depan dan nama belakang
+        const depan    = (namaDepanInput.value.trim().split(/\s+/)[0] || '').toLowerCase();
+        const belakang = (namaBelakangInput.value.trim().split(/\s+/)[0] || '').toLowerCase();
         usernamePreview.value = belakang ? depan + '.' + belakang : depan;
     }
 

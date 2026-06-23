@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+    <link rel="icon" type="image/jpeg" href="{{ asset('assets/imagesicon.jpg') }}">
     <meta charset="UTF-8">
     <title>Login | Sistem Permintaan Layanan</title>
 

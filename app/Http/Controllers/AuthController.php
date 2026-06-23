@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Role;
 
 class AuthController extends Controller
 {
@@ -30,12 +31,10 @@ class AuthController extends Controller
 
             $user = Auth::user();
 
-            if ($user->role === 'admin'  || $user->role === 'rekam_medis') {
-                return redirect()->intended('/permintaan');
-            }
-
-            if ($user->role === 'user') {
-                return redirect()->intended('/layanan');
+            // Cek redirect_to dari tabel roles
+            $role = Role::where('name', $user->role)->first();
+            if ($role && $role->redirect_to) {
+                return redirect()->intended($role->redirect_to);
             }
 
             return redirect()->intended('/');

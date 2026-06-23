@@ -23,6 +23,11 @@ class Layanan extends Model
         'ttd_kanan_label',
         'ttd_kanan_label_en',
         'ttd_tanggal_posisi',
+        'show_nama_dokter',
+        'show_dokter_section',
+        'show_nama_suami',
+        'show_bangsa',
+        'ttd_kanan_sumber',
     ];
 
     public function kategori()

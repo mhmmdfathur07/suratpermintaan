@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+    <link rel="icon" type="image/jpeg" href="{{ asset('assets/imagesicon.jpg') }}">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Status Permintaan</title>
@@ -222,11 +223,18 @@
         background: #005654; color: #fff;
     }
     .btn-dl:hover { background: #007a77; color: #fff; transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,86,84,.2); }
+    .btn-preview {
+        background: #e8f4ff; color: #1a6fb5;
+    }
+    .btn-preview:hover { background: #cce4ff; color: #0d4f8a; transform: translateY(-1px); }
+
     .btn-disabled {
         background: #f0f0f0; color: #aaa; cursor: not-allowed;
     }
-
-    /* ── EMPTY STATE ── */
+    .btn-bukti {
+        background: #fff8e1; color: #8a6000;
+    }
+    .btn-bukti:hover { background: #ffeea0; color: #6b4a00; transform: translateY(-1px); }
     .empty-state {
         padding: 60px 20px; text-align: center; color: #aaa;
     }
@@ -261,7 +269,7 @@
         </div>
         <div class="header-actions">
             <a href="{{ route('layanan.index') }}" class="btn-nav"><i class="bi bi-plus-circle me-1"></i> Ajukan Layanan</a>
-            <a href="{{ route('user.permintaan') }}" class="btn-nav"><i class="bi bi-list-check me-1"></i> History Permintaan</a>
+            <a href="{{ route('user.permintaan') }}" class="btn-nav active"><i class="bi bi-list-check me-1"></i> History Permintaan</a>
             <div class="divider-v"></div>
             <div class="user-info">
                 <i class="bi bi-person-circle"></i>
@@ -388,9 +396,17 @@
                                    class="btn-action btn-detail">
                                     <i class="bi bi-eye"></i> Detail
                                 </a>
+                                <a href="{{ route('user.permintaan.bukti', $row->id) }}"
+                                   class="btn-action btn-bukti" target="_blank" title="Cetak Bukti Pengajuan">
+                                    <i class="bi bi-printer"></i> Bukti
+                                </a>
                                 @if($row->status == 'selesai')
-                                    <a href="{{ route('user.permintaan.download', $row->id) }}"
+                                    <a href="{{ route('user.permintaan.preview', $row->id) }}"
                                        target="_blank" rel="noopener noreferrer"
+                                       class="btn-action btn-preview">
+                                        <i class="bi bi-eye-fill"></i> Preview
+                                    </a>
+                                    <a href="{{ route('user.permintaan.download', $row->id) }}"
                                        class="btn-action btn-dl">
                                         <i class="bi bi-download"></i> Unduh
                                     </a>
